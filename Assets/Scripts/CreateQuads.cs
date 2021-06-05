@@ -5,15 +5,16 @@ using UnityEngine;
 public class CreateQuads : MonoBehaviour
 {
     enum CubeSide  { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
-    enum BlockType { GRASS, DIRT, STONE }
+    enum BlockType { GRASS, DIRT, STONE, COAL }
 
     [SerializeField] private Material mat = null;
 
     private Vector2[,] blockUVs = new Vector2[,] {
-        /*GRASS TOP*/  { new Vector2(0f, 0.9375f),      new Vector2(0.0625f, 0.9375f), new Vector2(0f, 1f),      new Vector2(0.0625f, 1f) },
-        /*GRASS SIDE*/ { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9365f),   new Vector2(0.1875f, 1f), new Vector2(0.25f, 1f)   },
-        /*DIRT*/       { new Vector2(0.125f, 0.9375f),  new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1f),  new Vector2(0.1875f, 1f) },
-        /*STONE*/      { new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),  new Vector2(0.0625f, 1f), new Vector2(0.125f, 1f)  }
+        /*GRASS TOP*/  { new Vector2(0f, 0.9375f),      new Vector2(0.0625f, 0.9375f), new Vector2(0f, 1f),         new Vector2(0.0625f, 1f)     },
+        /*GRASS SIDE*/ { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9365f),   new Vector2(0.1875f, 1f),    new Vector2(0.25f, 1f)       },
+        /*DIRT*/       { new Vector2(0.125f, 0.9375f),  new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1f),     new Vector2(0.1875f, 1f)     },
+        /*STONE*/      { new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),  new Vector2(0.0625f, 1f),    new Vector2(0.125f, 1f)      },
+        /*COAL*/       { new Vector2(0.125f, 0.8125f),  new Vector2(0.1875f, 0.8125f), new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f) }
     };
 
     private void CreateQuad(CubeSide side, BlockType type, Vector3 position) {
@@ -153,16 +154,24 @@ public class CreateQuads : MonoBehaviour
     }
 
     private IEnumerator Start() {
-        for(int z = 0; z < 4; z++) {
-            for (int y = 0; y < 16; y++) {
-                for (int x = 0; x < 4; x++) {
+        for(int z = 0; z < 8; z++) {
+            for (int x = 0; x < 8; x++) {
+                for (int y = 0; y < 16; y++) {
                     BlockType type = BlockType.GRASS;
-                    if (y < 12) type = BlockType.STONE;
+                    if (y < 12) {
+                        type = BlockType.STONE;
+
+                        float rand = Random.Range(0f, 100f);
+                        if (rand < 5f)
+                        {
+                            type = BlockType.COAL;
+                        }
+                    }
                     else if (y < 15) type = BlockType.DIRT;
                     CreateCube(type, new Vector3(x, y, z));
-                    yield return null;
                 }
             }
+            yield return null;
         }
         CombineMeshes();
     }
