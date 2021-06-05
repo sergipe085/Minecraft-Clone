@@ -5,14 +5,14 @@ using UnityEngine;
 public class Block
 {
     enum CubeSide  { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
-    public enum BlockType { GRASS, DIRT, STONE, COAL }
+    public enum BlockType { GRASS, DIRT, STONE, COAL, AIR }
 
     [SerializeField] private Material   mat        = null;
     [SerializeField] private BlockType  blockType;
     [SerializeField] private Vector3    position   = Vector3.zero;
-    [SerializeField] private GameObject parent     = null;
+    [SerializeField] private Chunck     parent     = null;
 
-    public Block(Material _mat, BlockType _blockType, Vector3 _position, GameObject _parent) {
+    public Block(Material _mat, BlockType _blockType, Vector3 _position, Chunck _parent) {
         mat       = _mat;
         blockType = _blockType;
         position  = _position;
@@ -27,7 +27,7 @@ public class Block
         /*COAL*/       { new Vector2(0.125f, 0.8125f),  new Vector2(0.1875f, 0.8125f), new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f) },
     };
 
-    private void CreateQuad(CubeSide side, BlockType type, Vector3 position) {
+    private void CreateQuad(CubeSide side) {
         Mesh mesh = new Mesh();
         mesh.name = "ScriptedMesh";
 
@@ -41,23 +41,23 @@ public class Block
         Vector2 uv11;
         Vector2 uv10;
 
-        if (type == BlockType.GRASS && side == CubeSide.TOP) {
+        if (blockType == BlockType.GRASS && side == CubeSide.TOP) {
             uv00 = blockUVs[0, 0];
             uv10 = blockUVs[0, 1];
             uv01 = blockUVs[0, 2];
             uv11 = blockUVs[0, 3];
         }
-        else if (type == BlockType.GRASS && side == CubeSide.BOTTOM) {
+        else if (blockType == BlockType.GRASS && side == CubeSide.BOTTOM) {
             uv00 = blockUVs[(int) BlockType.DIRT + 1, 0];
             uv10 = blockUVs[(int) BlockType.DIRT + 1, 1];
             uv01 = blockUVs[(int) BlockType.DIRT + 1, 2];
             uv11 = blockUVs[(int) BlockType.DIRT + 1, 3];
         }
         else {
-            uv00 = blockUVs[(int) type + 1, 0];
-            uv10 = blockUVs[(int) type + 1, 1];
-            uv01 = blockUVs[(int) type + 1, 2];
-            uv11 = blockUVs[(int) type + 1, 3];
+            uv00 = blockUVs[(int) blockType + 1, 0];
+            uv10 = blockUVs[(int) blockType + 1, 1];
+            uv01 = blockUVs[(int) blockType + 1, 2];
+            uv11 = blockUVs[(int) blockType + 1, 3];
         }
 
         //All possible vertices
@@ -129,16 +129,39 @@ public class Block
         MeshFilter meshFilter = quad.AddComponent(typeof(MeshFilter)) as MeshFilter;
         meshFilter.mesh = mesh;
 
-        MeshRenderer meshRenderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
-        meshRenderer.material = mat;
+        // MeshRenderer meshRenderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        // meshRenderer.material = mat;
+    }
+
+    private bool HasSolidNeighbour(float x, float y, float z) {
+        try {
+            Block neighbour = parent.chunckData[(int)x, (int)y, (int)z];
+            return neighbour.blockType != BlockType.AIR;
+        } catch (System.IndexOutOfRangeException e) {}
+
+        return false;
     }
 
     public void Draw() {
-        CreateQuad(CubeSide.TOP,    blockType,    position);
-        CreateQuad(CubeSide.BOTTOM, blockType,    position);
-        CreateQuad(CubeSide.FRONT,  blockType,    position);
-        CreateQuad(CubeSide.BACK,   blockType,    position);
-        CreateQuad(CubeSide.RIGHT,  blockType,    position);
-        CreateQuad(CubeSide.LEFT,   blockType,    position);
+        if (blockType == BlockType.AIR) return;
+
+        if (!HasSolidNeighbour(position.x, position.y + 1, position.z)) {
+            CreateQuad(CubeSide.TOP);
+        }
+        if (!HasSolidNeighbour(position.x, position.y - 1, position.z)) {
+            CreateQuad(CubeSide.BOTTOM);
+        }
+        if (!HasSolidNeighbour(position.x, position.y, position.z + 1)) {
+            CreateQuad(CubeSide.FRONT);
+        }
+        if (!HasSolidNeighbour(position.x, position.y, position.z - 1)) {
+            CreateQuad(CubeSide.BACK);
+        }
+        if (!HasSolidNeighbour(position.x + 1, position.y, position.z)) {
+            CreateQuad(CubeSide.RIGHT);
+        }
+        if (!HasSolidNeighbour(position.x - 1, position.y, position.z)) {
+            CreateQuad(CubeSide.LEFT);
+        }    
     }
 }
