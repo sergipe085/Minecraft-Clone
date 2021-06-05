@@ -2,12 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CreateQuads : MonoBehaviour
+public class Block
 {
     enum CubeSide  { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
-    enum BlockType { GRASS, DIRT, STONE, COAL }
+    public enum BlockType { GRASS, DIRT, STONE, COAL }
 
-    [SerializeField] private Material mat = null;
+    [SerializeField] private Material   mat        = null;
+    [SerializeField] private BlockType  blockType;
+    [SerializeField] private Vector3    position   = Vector3.zero;
+    [SerializeField] private GameObject parent     = null;
+
+    public Block(Material _mat, BlockType _blockType, Vector3 _position, GameObject _parent) {
+        mat       = _mat;
+        blockType = _blockType;
+        position  = _position;
+        parent    = _parent;
+    }
 
     private Vector2[,] blockUVs = new Vector2[,] {
         /*GRASS TOP*/  { new Vector2(0f, 0.9375f),      new Vector2(0.0625f, 0.9375f), new Vector2(0f, 1f),         new Vector2(0.0625f, 1f)     },
@@ -113,66 +123,22 @@ public class CreateQuads : MonoBehaviour
         mesh.RecalculateNormals();
 
         GameObject quad = new GameObject("quad");
-        quad.transform.parent = this.transform;
+        quad.transform.parent = parent.transform;
         quad.transform.position = position;
+
         MeshFilter meshFilter = quad.AddComponent(typeof(MeshFilter)) as MeshFilter;
         meshFilter.mesh = mesh;
+
         MeshRenderer meshRenderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
         meshRenderer.material = mat;
     }
 
-    private void CombineQuads() {
-        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
-        CombineInstance[] combineInstances = new CombineInstance[meshFilters.Length];
-        int i = 0;
-        while (i < meshFilters.Length) {
-            combineInstances[i].mesh = meshFilters[i].mesh;
-            combineInstances[i].transform = meshFilters[i].transform.localToWorldMatrix;
-            i++;
-        }
-
-        MeshFilter meshFilter = gameObject.AddComponent(typeof(MeshFilter)) as MeshFilter;
-        meshFilter.mesh = new Mesh();
-        meshFilter.mesh.name = "CombinedMesh";
-        meshFilter.mesh.CombineMeshes(combineInstances);
-
-        MeshRenderer meshRenderer = gameObject.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
-        meshRenderer.material = mat;
-
-        foreach (Transform quad in transform) {
-            Destroy(quad.gameObject);
-        }
-    }
-
-    private void CreateCube(BlockType type, Vector3 position) {
-        CreateQuad(CubeSide.TOP, type, position);
-        CreateQuad(CubeSide.BOTTOM, type, position);
-        CreateQuad(CubeSide.FRONT, type, position);
-        CreateQuad(CubeSide.BACK, type, position);
-        CreateQuad(CubeSide.RIGHT, type, position);
-        CreateQuad(CubeSide.LEFT, type, position);
-    }
-
-    private IEnumerator Start() {
-        for(int z = 0; z < 8; z++) {
-            for (int x = 0; x < 8; x++) {
-                for (int y = 0; y < 16; y++) {
-                    BlockType type = BlockType.GRASS;
-                    if (y < 12) {
-                        type = BlockType.STONE;
-
-                        float rand = Random.Range(0f, 100f);
-                        if (rand < 5f)
-                        {
-                            type = BlockType.COAL;
-                        }
-                    }
-                    else if (y < 15) type = BlockType.DIRT;
-                    CreateCube(type, new Vector3(x, y, z));
-                }
-            }
-            yield return null;
-        }
-        CombineQuads();
+    public void Draw() {
+        CreateQuad(CubeSide.TOP,    blockType,    position);
+        CreateQuad(CubeSide.BOTTOM, blockType,    position);
+        CreateQuad(CubeSide.FRONT,  blockType,    position);
+        CreateQuad(CubeSide.BACK,   blockType,    position);
+        CreateQuad(CubeSide.RIGHT,  blockType,    position);
+        CreateQuad(CubeSide.LEFT,   blockType,    position);
     }
 }
