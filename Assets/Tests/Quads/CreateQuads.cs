@@ -8,7 +8,7 @@ public class CreateQuads : MonoBehaviour
 
     enum CubeSide { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
 
-    private void CreateQuad(CubeSide side) {
+    private void CreateQuad(CubeSide side, Vector3 position) {
         Mesh mesh = new Mesh();
         mesh.name = "ScriptedMesh";
 
@@ -87,22 +87,54 @@ public class CreateQuads : MonoBehaviour
 
         GameObject quad = new GameObject("quad");
         quad.transform.parent = this.transform;
+        quad.transform.position = position;
         MeshFilter meshFilter = quad.AddComponent(typeof(MeshFilter)) as MeshFilter;
         meshFilter.mesh = mesh;
         MeshRenderer meshRenderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
         meshRenderer.material = mat;
     }
 
-    private void CreateCube() {
-        CreateQuad(CubeSide.TOP);
-        CreateQuad(CubeSide.BOTTOM);
-        CreateQuad(CubeSide.FRONT);
-        CreateQuad(CubeSide.BACK);
-        CreateQuad(CubeSide.RIGHT);
-        CreateQuad(CubeSide.LEFT);
+    private void CombineMeshes() {
+        MeshFilter[] meshFilters = GetComponentsInChildren<MeshFilter>();
+        CombineInstance[] combineInstances = new CombineInstance[meshFilters.Length];
+        int i = 0;
+        while (i < meshFilters.Length) {
+            combineInstances[i].mesh = meshFilters[i].mesh;
+            combineInstances[i].transform = meshFilters[i].transform.localToWorldMatrix;
+            i++;
+        }
+
+        MeshFilter meshFilter = gameObject.AddComponent(typeof(MeshFilter)) as MeshFilter;
+        meshFilter.mesh = new Mesh();
+        meshFilter.mesh.name = "CombinedMesh";
+        meshFilter.mesh.CombineMeshes(combineInstances);
+
+        MeshRenderer meshRenderer = gameObject.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        meshRenderer.material = mat;
+
+        foreach (Transform quad in transform) {
+            Destroy(quad.gameObject);
+        }
     }
 
-    private void Start() {
-        CreateCube();
+    private void CreateCube(Vector3 position) {
+        CreateQuad(CubeSide.TOP, position);
+        CreateQuad(CubeSide.BOTTOM, position);
+        CreateQuad(CubeSide.FRONT, position);
+        CreateQuad(CubeSide.BACK, position);
+        CreateQuad(CubeSide.RIGHT, position);
+        CreateQuad(CubeSide.LEFT, position);
+    }
+
+    private IEnumerator Start() {
+        for(int z = 0; z < 2; z++) {
+            for (int y = 0; y < 2; y++) {
+                for (int x = 0; x < 2; x++) {
+                    CreateCube(new Vector3(x, y, z));
+                    yield return null;
+                }
+            }
+        }
+        CombineMeshes();
     }
 }
