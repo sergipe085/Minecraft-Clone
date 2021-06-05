@@ -4,11 +4,19 @@ using UnityEngine;
 
 public class CreateQuads : MonoBehaviour
 {
+    enum CubeSide  { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
+    enum BlockType { GRASS, DIRT, STONE }
+
     [SerializeField] private Material mat = null;
 
-    enum CubeSide { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
+    private Vector2[,] blockUVs = new Vector2[,] {
+        /*GRASS TOP*/  { new Vector2(0f, 0.9375f),      new Vector2(0.0625f, 0.9375f), new Vector2(0f, 1f),      new Vector2(0.0625f, 1f) },
+        /*GRASS SIDE*/ { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9365f),   new Vector2(0.1875f, 1f), new Vector2(0.25f, 1f)   },
+        /*DIRT*/       { new Vector2(0.125f, 0.9375f),  new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1f),  new Vector2(0.1875f, 1f) },
+        /*STONE*/      { new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),  new Vector2(0.0625f, 1f), new Vector2(0.125f, 1f)  }
+    };
 
-    private void CreateQuad(CubeSide side, Vector3 position) {
+    private void CreateQuad(CubeSide side, BlockType type, Vector3 position) {
         Mesh mesh = new Mesh();
         mesh.name = "ScriptedMesh";
 
@@ -17,11 +25,29 @@ public class CreateQuads : MonoBehaviour
         Vector2[] uvs       = new Vector2[4];
         int[]     triangles = new int[6];
 
-        //All possible uvs
-        Vector2 uv00 = new Vector2(0f, 0f);
-        Vector2 uv01 = new Vector2(0f, 1f);
-        Vector2 uv11 = new Vector2(1f, 1f);
-        Vector2 uv10 = new Vector2(1f, 0f);
+        Vector2 uv00;
+        Vector2 uv01;
+        Vector2 uv11;
+        Vector2 uv10;
+
+        if (type == BlockType.GRASS && side == CubeSide.TOP) {
+            uv00 = blockUVs[0, 0];
+            uv10 = blockUVs[0, 1];
+            uv01 = blockUVs[0, 2];
+            uv11 = blockUVs[0, 3];
+        }
+        else if (type == BlockType.GRASS && side == CubeSide.BOTTOM) {
+            uv00 = blockUVs[(int) BlockType.DIRT + 1, 0];
+            uv10 = blockUVs[(int) BlockType.DIRT + 1, 1];
+            uv01 = blockUVs[(int) BlockType.DIRT + 1, 2];
+            uv11 = blockUVs[(int) BlockType.DIRT + 1, 3];
+        }
+        else {
+            uv00 = blockUVs[(int) type + 1, 0];
+            uv10 = blockUVs[(int) type + 1, 1];
+            uv01 = blockUVs[(int) type + 1, 2];
+            uv11 = blockUVs[(int) type + 1, 3];
+        }
 
         //All possible vertices
         Vector3 v0 = new Vector3(-0.5f, -0.5f, 0.5f);
@@ -117,20 +143,23 @@ public class CreateQuads : MonoBehaviour
         }
     }
 
-    private void CreateCube(Vector3 position) {
-        CreateQuad(CubeSide.TOP, position);
-        CreateQuad(CubeSide.BOTTOM, position);
-        CreateQuad(CubeSide.FRONT, position);
-        CreateQuad(CubeSide.BACK, position);
-        CreateQuad(CubeSide.RIGHT, position);
-        CreateQuad(CubeSide.LEFT, position);
+    private void CreateCube(BlockType type, Vector3 position) {
+        CreateQuad(CubeSide.TOP, type, position);
+        CreateQuad(CubeSide.BOTTOM, type, position);
+        CreateQuad(CubeSide.FRONT, type, position);
+        CreateQuad(CubeSide.BACK, type, position);
+        CreateQuad(CubeSide.RIGHT, type, position);
+        CreateQuad(CubeSide.LEFT, type, position);
     }
 
     private IEnumerator Start() {
-        for(int z = 0; z < 2; z++) {
-            for (int y = 0; y < 2; y++) {
-                for (int x = 0; x < 2; x++) {
-                    CreateCube(new Vector3(x, y, z));
+        for(int z = 0; z < 4; z++) {
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 4; x++) {
+                    BlockType type = BlockType.GRASS;
+                    if (y < 12) type = BlockType.STONE;
+                    else if (y < 15) type = BlockType.DIRT;
+                    CreateCube(type, new Vector3(x, y, z));
                     yield return null;
                 }
             }
