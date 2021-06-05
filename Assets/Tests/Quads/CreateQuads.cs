@@ -6,7 +6,9 @@ public class CreateQuads : MonoBehaviour
 {
     [SerializeField] private Material mat = null;
 
-    private void CreateQuad() {
+    enum CubeSide { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
+
+    private void CreateQuad(CubeSide side) {
         Mesh mesh = new Mesh();
         mesh.name = "ScriptedMesh";
 
@@ -29,12 +31,30 @@ public class CreateQuads : MonoBehaviour
         Vector3 v4 = new Vector3(-0.5f,  0.5f, 0.5f);
         Vector3 v5 = new Vector3( 0.5f,  0.5f, 0.5f);
         Vector3 v6 = new Vector3( 0.5f,  0.5f,-0.5f);
-        Vector3 v7 = new Vector3(-0.5f, 0.5f, -0.5f);
+        Vector3 v7 = new Vector3(-0.5f,  0.5f,-0.5f);
 
-        vertices  = new Vector3[] { v4, v5, v0, v1 };
-        normals   = new Vector3[] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
-        uvs       = new Vector2[] { uv00, uv01, uv11, uv10 };
-        triangles = new int[]     { 3, 1, 2, 2, 1, 0 };
+        switch(side) {
+            case CubeSide.TOP:
+                vertices  = new Vector3[] { v4, v5, v6, v7 };
+                normals   = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+                uvs       = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[]     { 3, 1, 2, 2, 1, 0 };
+            break;
+
+            case CubeSide.BOTTOM:
+                vertices = new Vector3[] { v0, v1, v2, v3 };
+                normals = new Vector3[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down };
+                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+            break;
+
+            case CubeSide.FRONT:
+                vertices = new Vector3[] { v4, v5, v0, v1 };
+                normals = new Vector3[] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
+                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+            break;
+        }
 
         mesh.vertices  = vertices;
         mesh.normals   = normals;
@@ -52,7 +72,13 @@ public class CreateQuads : MonoBehaviour
         meshRenderer.material = mat;
     }
 
+    private void CreateCube() {
+        CreateQuad(CubeSide.TOP);
+        CreateQuad(CubeSide.BOTTOM);
+        CreateQuad(CubeSide.FRONT);
+    }
+
     private void Start() {
-        CreateQuad();
+        CreateCube();
     }
 }
