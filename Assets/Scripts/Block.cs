@@ -10,13 +10,17 @@ public class Block
     [SerializeField] private Material   mat        = null;
     [SerializeField] private BlockType  blockType;
     [SerializeField] private Vector3    position   = Vector3.zero;
-    [SerializeField] private Chunck     parent     = null;
+    [SerializeField] private Chunck     owner      = null;
+    [SerializeField] private GameObject parent     = null;
+    [SerializeField] private bool       isSolid    = false;
 
-    public Block(Material _mat, BlockType _blockType, Vector3 _position, Chunck _parent) {
+    public Block(Material _mat, BlockType _blockType, Vector3 _position, GameObject _parent, Chunck _owner) {
         mat       = _mat;
         blockType = _blockType;
         position  = _position;
         parent    = _parent;
+        owner     = _owner;
+        isSolid   = blockType != BlockType.AIR;
     }
 
     private Vector2[,] blockUVs = new Vector2[,] {
@@ -133,10 +137,42 @@ public class Block
         // meshRenderer.material = mat;
     }
 
-    private bool HasSolidNeighbour(float x, float y, float z) {
+    private int ConvertBlockIndexToLocal(int i) {
+        if (i == -1) {
+            i = World.chunckSize - 1;
+        }
+        else if (i == World.chunckSize) {
+            i = 0;
+        }
+        return i;
+    }
+
+    private bool HasSolidNeighbour(int x, int y, int z) {
+        Block[,,] chunckData;
+
+        if (x < 0 || x >= World.chunckSize ||
+            y < 0 || y >= World.chunckSize ||
+            z < 0 || z >= World.chunckSize) {
+                Vector3 neighbourChunckPos = parent.transform.position + new Vector3((x - (int)position.x) * World.chunckSize, (y - (int)position.y) * World.chunckSize, (z - (int)position.z) * World.chunckSize);
+                string neighbourChunckName = World.BuildChunckName(neighbourChunckPos);
+
+                x = ConvertBlockIndexToLocal(x);
+                y = ConvertBlockIndexToLocal(y);
+                z = ConvertBlockIndexToLocal(z);
+                
+                Chunck neighbourChunk;
+                if (World.chuncks.TryGetValue(neighbourChunckName, out neighbourChunk)) {
+                    chunckData = neighbourChunk.chunckData;
+                }
+                else {
+                    return false;
+                }
+            } else {
+                chunckData = owner.chunckData;
+            }
+
         try {
-            Block neighbour = parent.chunckData[(int)x, (int)y, (int)z];
-            return neighbour.blockType != BlockType.AIR;
+            return chunckData[x, y, z].isSolid;
         } catch (System.IndexOutOfRangeException e) {}
 
         return false;
@@ -145,22 +181,22 @@ public class Block
     public void Draw() {
         if (blockType == BlockType.AIR) return;
 
-        if (!HasSolidNeighbour(position.x, position.y + 1, position.z)) {
+        if (!HasSolidNeighbour((int)position.x, (int)position.y + 1, (int)position.z)) {
             CreateQuad(CubeSide.TOP);
         }
-        if (!HasSolidNeighbour(position.x, position.y - 1, position.z)) {
+        if (!HasSolidNeighbour((int)position.x, (int)position.y - 1, (int)position.z)) {
             CreateQuad(CubeSide.BOTTOM);
         }
-        if (!HasSolidNeighbour(position.x, position.y, position.z + 1)) {
+        if (!HasSolidNeighbour((int)position.x, (int)position.y, (int)position.z + 1)) {
             CreateQuad(CubeSide.FRONT);
         }
-        if (!HasSolidNeighbour(position.x, position.y, position.z - 1)) {
+        if (!HasSolidNeighbour((int)position.x, (int)position.y, (int)position.z - 1)) {
             CreateQuad(CubeSide.BACK);
         }
-        if (!HasSolidNeighbour(position.x + 1, position.y, position.z)) {
+        if (!HasSolidNeighbour((int)position.x + 1, (int)position.y, (int)position.z)) {
             CreateQuad(CubeSide.RIGHT);
         }
-        if (!HasSolidNeighbour(position.x - 1, position.y, position.z)) {
+        if (!HasSolidNeighbour((int)position.x - 1, (int)position.y, (int)position.z)) {
             CreateQuad(CubeSide.LEFT);
         }    
     }
