@@ -37,21 +37,42 @@ public class CreateQuads : MonoBehaviour
             case CubeSide.TOP:
                 vertices  = new Vector3[] { v4, v5, v6, v7 };
                 normals   = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
-                uvs       = new Vector2[] { uv01, uv11, uv00, uv10 };
-                triangles = new int[]     { 3, 1, 2, 2, 1, 0 };
+                uvs       = new Vector2[] { uv01, uv11, uv10, uv00 };
+                triangles = new int[]     { 3, 0, 2, 0, 1, 2 };
             break;
 
             case CubeSide.BOTTOM:
-                vertices = new Vector3[] { v0, v1, v2, v3 };
+                vertices = new Vector3[] { v3, v2, v1, v0 };
                 normals = new Vector3[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down };
-                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
-                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+                uvs = new Vector2[] { uv01, uv11, uv10, uv00 };
+                triangles = new int[] { 3, 0, 2, 0, 1, 2 };
             break;
 
             case CubeSide.FRONT:
                 vertices = new Vector3[] { v4, v5, v0, v1 };
                 normals = new Vector3[] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
                 uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+            break;
+
+            case CubeSide.BACK:
+                vertices = new Vector3[] { v6, v7, v2, v3 };
+                normals = new Vector3[] { Vector3.back, Vector3.back, Vector3.back, Vector3.back };
+                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+            break;
+
+            case CubeSide.RIGHT:
+                vertices = new Vector3[] { v5, v6, v1, v2 };
+                normals = new Vector3[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right };
+                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                triangles = new int[] { 3, 1, 2, 2, 1, 0 };
+            break;
+
+            case CubeSide.LEFT:
+                vertices = new Vector3[] { v0, v3, v4, v7 };
+                normals = new Vector3[] { Vector3.left, Vector3.left, Vector3.left, Vector3.left };
+                uvs = new Vector2[] { uv00, uv10, uv01, uv11 };
                 triangles = new int[] { 3, 1, 2, 2, 1, 0 };
             break;
         }
@@ -76,6 +97,9 @@ public class CreateQuads : MonoBehaviour
         CreateQuad(CubeSide.TOP);
         CreateQuad(CubeSide.BOTTOM);
         CreateQuad(CubeSide.FRONT);
+        CreateQuad(CubeSide.BACK);
+        CreateQuad(CubeSide.RIGHT);
+        CreateQuad(CubeSide.LEFT);
     }
 
     private void Start() {
