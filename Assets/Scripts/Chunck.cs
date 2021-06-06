@@ -23,7 +23,29 @@ public class Chunck
             for (int y = 0; y < World.chunckSize; y++) {
                 for (int z = 0; z < World.chunckSize; z++) {
                     Vector3 blockPos = new Vector3(x, y, z);
-                    Block.BlockType type = (Block.BlockType)Random.Range(0, 5);
+                    Block.BlockType type;
+
+                    int xWorld = (int) (x + chunck.transform.position.x);
+                    int yWorld = (int) (y + chunck.transform.position.y);
+                    int zWorld = (int) (z + chunck.transform.position.z);
+
+                    if (Utils.FBM3D(xWorld, yWorld, zWorld, 0.03f, 3, 2) < 0.46f) {
+                        type = Block.BlockType.AIR;
+                    }
+                    else if (yWorld <= Utils.GenerateStoneHeight(xWorld, zWorld)) {
+                        type = Block.BlockType.STONE;
+                    }
+                    else if (yWorld == Utils.GenerateHeight(xWorld, zWorld)) {
+                        type = Block.BlockType.GRASS;
+                    }
+                    else if (yWorld < Utils.GenerateHeight(xWorld, zWorld)) {
+                        type = Block.BlockType.DIRT;
+                    }
+                    else {
+                        type = Block.BlockType.AIR;
+                    }
+
+                    //type = (Block.BlockType)Random.Range(0, 4);
 
                     chunckData[x, y, z] = new Block(cubeMaterial, type, blockPos, chunck, this);
                 }

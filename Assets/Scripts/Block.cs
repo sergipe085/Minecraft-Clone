@@ -92,21 +92,21 @@ public class Block
             case CubeSide.FRONT:
                 vertices = new Vector3[] { v4, v5, v0, v1 };
                 normals = new Vector3[] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
-                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                uvs = new Vector2[] { uv11, uv01, uv10, uv00 };
                 triangles = new int[] { 3, 1, 2, 2, 1, 0 };
             break;
 
             case CubeSide.BACK:
                 vertices = new Vector3[] { v6, v7, v2, v3 };
                 normals = new Vector3[] { Vector3.back, Vector3.back, Vector3.back, Vector3.back };
-                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                uvs = new Vector2[] { uv11, uv01, uv10, uv00 };
                 triangles = new int[] { 3, 1, 2, 2, 1, 0 };
             break;
 
             case CubeSide.RIGHT:
                 vertices = new Vector3[] { v5, v6, v1, v2 };
                 normals = new Vector3[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right };
-                uvs = new Vector2[] { uv01, uv11, uv00, uv10 };
+                uvs = new Vector2[] { uv11, uv01, uv10, uv00 };
                 triangles = new int[] { 3, 1, 2, 2, 1, 0 };
             break;
 

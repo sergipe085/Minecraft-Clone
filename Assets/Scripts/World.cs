@@ -31,10 +31,6 @@ public class World : MonoBehaviour {
             c.Value.DrawChunck();
             yield return null;
         }
-
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 1)) {
-            
-        }
     }
 
     private IEnumerator BuildWorld() {
