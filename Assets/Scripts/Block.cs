@@ -5,7 +5,7 @@ using UnityEngine;
 public class Block
 {
     enum CubeSide  { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
-    public enum BlockType { GRASS, DIRT, STONE, COAL, AIR }
+    public enum BlockType { GRASS, DIRT, STONE, COAL, BEDROCK, AIR }
 
     [SerializeField] private Material   mat        = null;
     [SerializeField] private BlockType  blockType;
@@ -29,6 +29,7 @@ public class Block
         /*DIRT*/       { new Vector2(0.125f, 0.9375f),  new Vector2(0.1875f, 0.9375f), new Vector2(0.125f, 1f),     new Vector2(0.1875f, 1f)     },
         /*STONE*/      { new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f),  new Vector2(0.0625f, 1f),    new Vector2(0.125f, 1f)      },
         /*COAL*/       { new Vector2(0.125f, 0.8125f),  new Vector2(0.1875f, 0.8125f), new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f) },
+        /*BEDROCK*/    { new Vector2(0.0625f, 0.875f),  new Vector2(0.125f, 0.875f), new Vector2(0.0625f, 0.9375f), new Vector2(0.125f, 0.9375f) },
     };
 
     private void CreateQuad(CubeSide side) {
