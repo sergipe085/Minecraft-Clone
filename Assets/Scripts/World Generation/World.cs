@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class World : MonoBehaviour {
-    public Material textureAtlas = null;
+    public GameObject player       = null;
+    public Material   textureAtlas = null;
 
     public static int chunckSize   = 16;
     public static int columnHeight = 16;
     public static int worldSize    = 2;
+    public static int radius       = 1;
 
     public static Dictionary<string, Chunck> chuncks;
 
     private void Start() {
+        player.SetActive(false);
         chuncks = new Dictionary<string, Chunck>();
         transform.position = Vector3.zero;
         transform.rotation = Quaternion.identity;
@@ -34,10 +37,13 @@ public class World : MonoBehaviour {
     }
 
     private IEnumerator BuildWorld() {
-        for (int z = 0; z < worldSize; z++) {
-            for (int x = 0; x < worldSize; x++) {
+        int posX = (int)Mathf.Floor(player.transform.position.x / chunckSize);
+        int posZ = (int)Mathf.Floor(player.transform.position.z / chunckSize);
+
+        for (int z = -radius; z <= radius; z++) {
+            for (int x = -radius; x <= radius; x++) {
                 for (int i = 0; i < columnHeight; i++) {
-                    Vector3 chunckPos = new Vector3(x * chunckSize, i * chunckSize, z * chunckSize);
+                    Vector3 chunckPos = new Vector3((x + posX) * chunckSize, i * chunckSize, (z + posZ) * chunckSize);
 
                     Chunck c = new Chunck(chunckPos, textureAtlas);
                     c.chunck.transform.parent = this.transform;
@@ -50,6 +56,7 @@ public class World : MonoBehaviour {
             c.Value.DrawChunck();
             yield return null;
         }
+        player.SetActive(true);
     }
 
     public static string BuildChunckName(Vector3 position) {

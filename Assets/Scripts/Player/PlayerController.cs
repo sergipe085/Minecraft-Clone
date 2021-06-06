@@ -38,8 +38,6 @@ public class PlayerController : MonoBehaviour
             Land();
         }
         lastIsGrounded = isGrounded;
-
-        print(isGrounded);
     }
 
     private void Move() {
@@ -56,12 +54,11 @@ public class PlayerController : MonoBehaviour
         if (!currentInput.jump || !isGrounded) {
             return;
         }
-        print("jump");
         rig.velocity = new Vector3(rig.velocity.x, jumpSpeed * Time.fixedDeltaTime, rig.velocity.z);
     }
 
     private void Land() {
-        print("land");
+        
     }
 
     private void CaptureInput() {

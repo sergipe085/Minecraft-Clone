@@ -43,7 +43,7 @@ public class Chunck
             type = Block.BlockType.BEDROCK;
         }
         else {
-            if (Utils.FBM3D(xWorld, yWorld, zWorld, 0.03f, 3, 2) < 0.46f) {
+            if (Utils.FBM3D(xWorld, yWorld, zWorld, 0.03f, 3, 2) < 0.43f) {
                 type = Block.BlockType.AIR;
             }
             else if (yWorld <= Utils.GenerateStoneHeight(xWorld, zWorld)) {
