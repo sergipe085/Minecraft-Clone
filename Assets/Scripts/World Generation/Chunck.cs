@@ -81,6 +81,7 @@ public class Chunck
         CombineQuads();
         MeshCollider meshCollider = chunck.AddComponent(typeof(MeshCollider)) as MeshCollider;
         meshCollider.sharedMesh   = chunck.GetComponent<MeshFilter>().mesh;
+        chunck.layer              = LayerMask.NameToLayer("Ground");
     }
 
     private void CombineQuads() {
