@@ -10,7 +10,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     private InputStructure currentInput;
     private bool lastIsGrounded = false;
-    private bool isGrounded     = true;
 
     [Header("COMPONENTS")]
     private Rigidbody           rig        = null;
@@ -34,10 +33,10 @@ public class PlayerController : MonoBehaviour
         Jump();
         camera.MouseLook(currentInput.xLook, currentInput.yLook);
 
-        if (isGrounded && !lastIsGrounded) {
+        if (IsGrounded() && !lastIsGrounded) {
             Land();
         }
-        lastIsGrounded = isGrounded;
+        lastIsGrounded = IsGrounded();
     }
 
     private void Move() {
@@ -51,7 +50,7 @@ public class PlayerController : MonoBehaviour
     }
 
     private void Jump() {
-        if (!currentInput.jump || !isGrounded) {
+        if (!currentInput.jump || !IsGrounded()) {
             return;
         }
         rig.velocity = new Vector3(rig.velocity.x, jumpSpeed * Time.fixedDeltaTime, rig.velocity.z);
@@ -61,25 +60,22 @@ public class PlayerController : MonoBehaviour
         
     }
 
+    private bool IsGrounded() {
+        bool BLchecker = Physics.Raycast(new Vector3(transform.position.x - 0.35f, transform.position.y, transform.position.z - 0.35f), Vector3.down, 1f, groundLayer);
+        bool TLchecker = Physics.Raycast(new Vector3(transform.position.x - 0.35f, transform.position.y, transform.position.z + 0.35f), Vector3.down, 1f, groundLayer);
+        bool BRchecker = Physics.Raycast(new Vector3(transform.position.x + 0.35f, transform.position.y, transform.position.z - 0.35f), Vector3.down, 1f, groundLayer);
+        bool TRchecker = Physics.Raycast(new Vector3(transform.position.x + 0.35f, transform.position.y, transform.position.z + 0.35f), Vector3.down, 1f, groundLayer);
+        bool Mchecker  = Physics.Raycast(transform.position, Vector3.down, 1f, groundLayer);
+
+        return BLchecker || TLchecker || BRchecker || TRchecker || Mchecker;
+    }
+
     private void CaptureInput() {
         currentInput.xMove  = Input.GetAxisRaw("Horizontal");
         currentInput.zMove  = Input.GetAxisRaw("Vertical");
         currentInput.xLook  = Input.GetAxis("Mouse X");
         currentInput.yLook  = Input.GetAxis("Mouse Y");
         currentInput.jump   = Input.GetButton("Jump");
-    }
-
-    private void OnCollisionStay(Collision other) {
-        if (IsGround(other)) {
-            isGrounded = true;
-        }
-        else {
-            isGrounded = false;
-        }
-    }
-
-    private void OnCollisionExit(Collision other) {
-        isGrounded = false;
     }
 
     private bool IsGround(Collision other) {
@@ -95,5 +91,12 @@ public class PlayerController : MonoBehaviour
         }
 
         return false;
+    }
+
+    public void OnCreated() {
+        transform.position = new Vector3(transform.position.x, 256, transform.position.z);
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, Mathf.Infinity, groundLayer)) {
+            transform.position = hit.point + Vector3.up;
+        }
     }
 }
