@@ -13,6 +13,7 @@ public class World : MonoBehaviour {
     public static int worldSize    = 2;
     public static int radius       = 4;
     public static ConcurrentDictionary<string, Chunck> chuncks;
+    public static List<string> toRemove = new List<string>();
     public static bool firstBuild = true;
 
     public Vector3 lastBuildPos = Vector3.zero;
@@ -69,6 +70,7 @@ public class World : MonoBehaviour {
         }
 
         queue.Run(DrawChunks());
+        queue.Run(RemoveOldChunks());
     }
 
     void BuildNearPlayer() {
@@ -131,7 +133,21 @@ public class World : MonoBehaviour {
             if (c.Value.status == Chunck.ChunckStatus.DRAW) {
                 c.Value.DrawChunck();
             }
+            if (c.Value.chunck && Vector3.Distance(player.transform.position, c.Value.chunck.transform.position) > radius * chunckSize) {
+                toRemove.Add(c.Key);
+            }
             yield return null;
+        }
+    }
+
+    IEnumerator RemoveOldChunks() {
+        foreach (string cToRemove in toRemove) {
+            Chunck c;
+            if (chuncks.TryGetValue(cToRemove, out c)) {
+                Destroy(c.chunck);
+                chuncks.TryRemove(cToRemove, out c);
+                yield return null;
+            }
         }
     }
 
