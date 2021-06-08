@@ -7,6 +7,8 @@ public class Chunck
     [SerializeField] private Material cubeMaterial = null;
     public Block[,,]  chunckData;
     public GameObject chunck = null;
+    public enum ChunckStatus { DRAW, KEEP, DONE };
+    public ChunckStatus status;
 
     public Chunck(Vector3 _position, Material _cubeMaterial) {
         chunck = new GameObject(World.BuildChunckName(_position));
@@ -31,6 +33,8 @@ public class Chunck
                     Block.BlockType type = GetBlockType(xWorld, yWorld, zWorld);
 
                     chunckData[x, y, z] = new Block(cubeMaterial, type, blockPos, chunck, this);
+
+                    status = ChunckStatus.DRAW;
                 }
             }
         }
@@ -82,6 +86,7 @@ public class Chunck
         MeshCollider meshCollider = chunck.AddComponent(typeof(MeshCollider)) as MeshCollider;
         meshCollider.sharedMesh   = chunck.GetComponent<MeshFilter>().mesh;
         chunck.layer              = LayerMask.NameToLayer("Ground");
+        status                    = ChunckStatus.DONE; 
     }
 
     private void CombineQuads() {
