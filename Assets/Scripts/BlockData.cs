@@ -65,16 +65,22 @@ namespace Minecraft.WorldGeneration
             { BlockFace.BACK, new Vector3[] { Vector3.back, Vector3.back, Vector3.back, Vector3.back } },
         };
 
-        public static Dictionary<BlockFace, Vector2[]> uvs = new Dictionary<BlockFace, Vector2[]>() {
-            /* GRASS TOP */ { BlockFace.TOP, new Vector2[] { new Vector2(0f, 0.9375f), new Vector2(0.0625f, 0.9375f), new Vector2(0.0625f, 1f), new Vector2(0f, 1f) } },
-            /* DIRT */ { BlockFace.BOTTOM, new Vector2[] { new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f), new Vector2(0.1875f, 1f), new Vector2(0.125f, 1f) } },
-            /* GRASS SIDE */ { BlockFace.RIGHT, new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
-            /* GRASS SIDE */ { BlockFace.LEFT, new Vector2[] { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 1f) } },
-            /* GRASS SIDE */ { BlockFace.FRONT, new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
-            /* GRASS SIDE */ { BlockFace.BACK, new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
+        public static Dictionary<BlockType, Dictionary<BlockFace, Vector2[]>> uvs = new Dictionary<BlockType, Dictionary<BlockFace, Vector2[]>>() {
+            { BlockType.GRASS, grassUVs },
         };
 
+        #region GRASS UVS
+        public static Dictionary<BlockFace, Vector2[]> grassUVs = new Dictionary<BlockFace, Vector2[]>() {
+            /* GRASS TOP */  { BlockFace.TOP,    new Vector2[] { new Vector2(0f, 0.9375f), new Vector2(0.0625f, 0.9375f), new Vector2(0.0625f, 1f), new Vector2(0f, 1f) } },
+            /* DIRT */       { BlockFace.BOTTOM, new Vector2[] { new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f), new Vector2(0.1875f, 1f), new Vector2(0.125f, 1f) } },
+            /* GRASS SIDE */ { BlockFace.RIGHT,  new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
+            /* GRASS SIDE */ { BlockFace.LEFT,   new Vector2[] { new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 1f) } },
+            /* GRASS SIDE */ { BlockFace.FRONT,  new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
+            /* GRASS SIDE */ { BlockFace.BACK,   new Vector2[] { new Vector2(0.25f, 1f), new Vector2(0.1875f, 1f), new Vector2(0.25f, 0.9365f), new Vector2(0.1875f, 0.9375f) } },
+        };
+        #endregion
     }
 
     public enum BlockFace { TOP, BOTTOM, RIGHT, LEFT, FRONT, BACK }
+    public enum BlockType { GRASS, AIR }
 }

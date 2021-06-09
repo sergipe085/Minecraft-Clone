@@ -6,7 +6,7 @@ namespace Minecraft.WorldGeneration
 {
     public class Chunk : MonoBehaviour
     {
-        public static int chunckSize = 8;
+        public static int chunckSize = 16;
 
         public MeshStruct meshStruct = new MeshStruct();
         public Material material;
@@ -19,7 +19,7 @@ namespace Minecraft.WorldGeneration
             for (int x = 0; x < chunckSize; x++) {
                 for (int y = 0; y < chunckSize; y++) {
                     for (int z = 0; z < chunckSize; z++) {
-                        chunckData[x, y, z] = new Block(Vector3.zero, new Vector3(x, y, z), this);
+                        chunckData[x, y, z] = new Block(new Vector3Int(x, y, z), new Vector3(x, y, z), (BlockType)Random.Range(0, 1), this);
                     }
                 }
             }
