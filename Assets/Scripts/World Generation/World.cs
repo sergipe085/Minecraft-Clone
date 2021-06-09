@@ -19,7 +19,7 @@ public class World : MonoBehaviour {
     public Vector3 lastBuildPos = Vector3.zero;
 
     private CoroutineQueue queue = null;
-    public static uint maxCoroutines = 500;
+    public static uint maxCoroutines = 1000;
 
     [Header("UI")]
     [SerializeField] private GameObject menuUI    = null;
@@ -52,10 +52,10 @@ public class World : MonoBehaviour {
         BuildChunckAt((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize));
 
         //draw starting chunk
-        queue.Run(DrawChunks());
+        StartCoroutine(DrawChunks());
 
         //build world
-        queue.Run(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
+        StartCoroutine(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
     }
 
     private void Update() {
@@ -69,13 +69,13 @@ public class World : MonoBehaviour {
             firstBuild = false;
         }
 
-        queue.Run(DrawChunks());
-        queue.Run(RemoveOldChunks());
+        StartCoroutine(DrawChunks());
+        StartCoroutine(RemoveOldChunks());
     }
 
     void BuildNearPlayer() {
         StopCoroutine(nameof(BuildRecursiveWorld));
-        queue.Run(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
+        StartCoroutine(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
     }
 
     void BuildChunckAt(int x, int y, int z) {
@@ -99,32 +99,32 @@ public class World : MonoBehaviour {
 
         //build chunk front
         BuildChunckAt(x, y, z + 1);
-        queue.Run(BuildRecursiveWorld(x, y, z + 1, rad));
+        StartCoroutine(BuildRecursiveWorld(x, y, z + 1, rad));
         yield return null;
 
         //build chunk back
         BuildChunckAt(x, y, z - 1);
-        queue.Run(BuildRecursiveWorld(x, y, z - 1, rad));
+        StartCoroutine(BuildRecursiveWorld(x, y, z - 1, rad));
         yield return null;
 
         //build chunk up
         BuildChunckAt(x, y + 1, z);
-        queue.Run(BuildRecursiveWorld(x, y + 1, z, rad));
+        StartCoroutine(BuildRecursiveWorld(x, y + 1, z, rad));
         yield return null;
 
         //build chunk down
         BuildChunckAt(x, y - 1, z);
-        queue.Run(BuildRecursiveWorld(x, y - 1, z, rad));
+        StartCoroutine(BuildRecursiveWorld(x, y - 1, z, rad));
         yield return null;
 
         //build chunk right
         BuildChunckAt(x + 1, y, z);
-        queue.Run(BuildRecursiveWorld(x + 1, y, z, rad));
+        StartCoroutine(BuildRecursiveWorld(x + 1, y, z, rad));
         yield return null;
 
         //build chunk left
         BuildChunckAt(x - 1, y, z);
-        queue.Run(BuildRecursiveWorld(x - 1, y, z, rad));
+        StartCoroutine(BuildRecursiveWorld(x - 1, y, z, rad));
         yield return null;
     }
 

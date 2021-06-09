@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public class Block
 {
@@ -33,6 +34,7 @@ public class Block
     };
 
     private void CreateQuad(CubeSide side) {
+        Profiler.BeginSample("Drawing Chunk");
         Mesh mesh = new Mesh();
         mesh.name = "ScriptedMesh";
 
@@ -136,6 +138,7 @@ public class Block
 
         // MeshRenderer meshRenderer = quad.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
         // meshRenderer.material = mat;
+        Profiler.EndSample();
     }
 
     private int ConvertBlockIndexToLocal(int i) {
@@ -173,6 +176,7 @@ public class Block
             }
 
         try {
+            if (chunckData[x, y, z] == null) return false;
             return chunckData[x, y, z].isSolid;
         } catch (System.IndexOutOfRangeException e) {}
 

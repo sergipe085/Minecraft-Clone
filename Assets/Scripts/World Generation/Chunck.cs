@@ -17,7 +17,7 @@ public class Chunck
         BuildChunck();
     }
 
-    private void BuildChunck() {
+    public void BuildChunck() {
         chunckData = new Block[World.chunckSize, World.chunckSize, World.chunckSize];
 
         //Create blocks
@@ -86,7 +86,7 @@ public class Chunck
         MeshCollider meshCollider = chunck.AddComponent(typeof(MeshCollider)) as MeshCollider;
         meshCollider.sharedMesh   = chunck.GetComponent<MeshFilter>().mesh;
         chunck.layer              = LayerMask.NameToLayer("Ground");
-        status                    = ChunckStatus.DONE; 
+        status                    = ChunckStatus.DONE;
     }
 
     private void CombineQuads() {
