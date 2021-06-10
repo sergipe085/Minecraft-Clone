@@ -9,7 +9,7 @@ namespace Minecraft.WorldGeneration
         private Vector3Int localPosition = Vector3Int.zero;
         private Vector3Int worldPosition = Vector3Int.zero;
         private Chunk   chunkParent      = null;
-        private BlockType type;
+        public  BlockType type;
         private bool isSolid = false;
 
         public Block(Vector3Int _localPosition, Vector3Int _worldPosition, BlockType _type, Chunk _chunkParent) {

@@ -20,15 +20,10 @@ namespace Minecraft.WorldGeneration
         public bool firstBuild = true;
         public List<string> toRemove = new List<string>();
 
-        public CoroutineQueue queue;
-        public static uint maxCoroutines = 5000;
-
         private async void Start() {
             Vector3 playerPos = player.transform.position;
             player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
             lastBuildPos = player.transform.position;
-
-            queue = new CoroutineQueue(maxCoroutines, StartCoroutine);
 
             Vector3Int initialPos = new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize;
             BuildChunkAt(initialPos);
@@ -42,7 +37,7 @@ namespace Minecraft.WorldGeneration
         private async void Update() {
             if (Vector3.Distance(player.transform.position, lastBuildPos) > chunkSize)
             {
-                BuildNearPlayer();
+                await BuildNearPlayer();
                 lastBuildPos = player.transform.position;
             }
 
@@ -53,7 +48,7 @@ namespace Minecraft.WorldGeneration
             }
 
             await DrawChunks();
-            queue.Run(RemoveChunks());
+            await RemoveChunks();
         }
 
         private void BuildChunkAt(Vector3Int pos) {
@@ -77,88 +72,38 @@ namespace Minecraft.WorldGeneration
 
             newPos = pos + Vector3Int.right;
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
 
             newPos = pos + Vector3Int.left;
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
 
             newPos = pos + Vector3Int.up;
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
 
             newPos = pos + Vector3Int.down;
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
 
             newPos = pos + new Vector3Int(0, 0, 1);
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
 
             newPos = pos + new Vector3Int(0, 0, -1);
             BuildChunkAt(newPos);
-            //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
             await Task.Yield();
-            //yield return null;
-        }
-
-        private IEnumerator RecursiveBuildWorldA(Vector3Int pos, int rad)
-        {
-            rad--;
-
-            if (rad <= 0) yield break;
-
-            Vector3Int newPos;
-
-            newPos = pos + Vector3Int.right;
-            BuildChunkAt(newPos);
-            queue.Run(RecursiveBuildWorldA(newPos, rad));
-            yield return null;
-
-            newPos = pos + Vector3Int.left;
-            BuildChunkAt(newPos);
-            yield return null;
-
-            newPos = pos + Vector3Int.up;
-            BuildChunkAt(newPos);
-            queue.Run(RecursiveBuildWorldA(newPos, rad));
-            yield return null;
-
-            newPos = pos + Vector3Int.down;
-            BuildChunkAt(newPos);
-            queue.Run(RecursiveBuildWorldA(newPos, rad));
-            yield return null;
-
-            newPos = pos + new Vector3Int(0, 0, 1);
-            BuildChunkAt(newPos);
-            queue.Run(RecursiveBuildWorldA(newPos, rad));
-            yield return null;
-
-            newPos = pos + new Vector3Int(0, 0, -1);
-            BuildChunkAt(newPos);
-            queue.Run(RecursiveBuildWorldA(newPos, rad));
-            yield return null;
         }
         
-        private async void BuildNearPlayer() {
-            StopCoroutine(nameof(RecursiveBuildWorldA));
+        private async Task BuildNearPlayer() {
             RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius);
+            await Task.Yield();
         }
 
         async Task DrawChunks()
@@ -167,7 +112,7 @@ namespace Minecraft.WorldGeneration
             {
                 if (c.Value.status == ChunkStatus.DRAW)
                 {
-                    c.Value.DrawChunk();
+                    await c.Value.DrawChunk();
                 }
                 else if (c.Value.chunkObject && Vector3.Distance(player.transform.position, c.Value.chunkObject.transform.position) > radius * chunkSize)
                 {
@@ -177,18 +122,19 @@ namespace Minecraft.WorldGeneration
             }
         }
 
-        private IEnumerator RemoveChunks() {
+        private async Task RemoveChunks() {
             for (int i = 0; i < toRemove.Count; i++) {
                 Chunk c;
                 if (chunks.TryGetValue(toRemove[i], out c))
                 {
                     Destroy(c.chunkObject);
+                    c.Save();
                     chunks.TryRemove(toRemove[i], out c);
                     toRemove.RemoveAt(i);
                 } else {
                     toRemove.RemoveAt(i);
                 }
-                yield return null;
+                await Task.Yield();
             }
         }
 

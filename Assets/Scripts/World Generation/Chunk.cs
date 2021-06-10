@@ -1,9 +1,34 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Minecraft.WorldGeneration 
 {
+    [System.Serializable]
+    class ChunkBlockData 
+    {
+        public BlockType[,,] matrix;
+
+        public ChunkBlockData() {}
+
+        public ChunkBlockData(Block[,,] b) {
+            matrix = new BlockType[World.chunkSize, World.chunkSize, World.chunkSize];
+            for (int x = 0; x < World.chunkSize; x++)
+            {
+                for (int y = 0; y < World.chunkSize; y++)
+                {
+                    for (int z = 0; z < World.chunkSize; z++)
+                    {
+                        matrix[x, y, z] = b[x, y, z].type;
+                    }
+                }
+            }
+        }
+    }
+
     public class Chunk
     {
         public MeshStruct meshStruct;
@@ -14,6 +39,39 @@ namespace Minecraft.WorldGeneration
         public ChunkStatus status;
 
         public int currentIndex = 0;
+
+        private ChunkBlockData chunkBlockData;
+
+        string BuildChunkFileName(Vector3 v) {
+            return Application.persistentDataPath + $"/savedata/Chunk_{(int)v.x}_{(int)v.y}_{(int)v.z}_{World.chunkSize}_{World.radius}.dat";
+        }
+
+        bool Load() {
+            string chunkFile = BuildChunkFileName(chunkObject.transform.position);
+            if (File.Exists(chunkFile)) {
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.Open(chunkFile, FileMode.Open);
+                chunkBlockData = new ChunkBlockData();
+                chunkBlockData = (ChunkBlockData) bf.Deserialize(file);
+                file.Close();
+                return true;
+            }
+            return false;
+        }
+
+        public void Save() {
+            string chunkFile = BuildChunkFileName(chunkObject.transform.position);
+
+            if (!File.Exists(chunkFile)) {
+                Directory.CreateDirectory(Path.GetDirectoryName(chunkFile));
+            }
+
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(chunkFile, FileMode.OpenOrCreate);
+            chunkBlockData = new ChunkBlockData(chunkData);
+            bf.Serialize(file, chunkBlockData);
+            file.Close();
+        }
 
         public Chunk(Vector3 _chunkPosition, Material _material) {
             chunkObject = new GameObject(World.BuildChunckName(_chunkPosition));
@@ -29,14 +87,23 @@ namespace Minecraft.WorldGeneration
             GenerateChunk();
         }
 
-        public void GenerateChunk() {
+        public async Task GenerateChunk() {
+            bool dataFromFile = false;
+            dataFromFile = Load();
+
             for (int x = 0; x < World.chunkSize; x++) {
                 for (int y = 0; y < World.chunkSize; y++) {
                     for (int z = 0; z < World.chunkSize; z++) {
                         Vector3Int worldPos = new Vector3Int((int)chunkObject.transform.position.x + x, (int)chunkObject.transform.position.y + y, (int)chunkObject.transform.position.z + z);
+                        status = ChunkStatus.DRAW;
+                        
+                        if (dataFromFile) {
+                            chunkData[x, y, z] = new Block(new Vector3Int(x, y, z), worldPos, chunkBlockData.matrix[x, y, z], this);
+                            continue;
+                        }
+
                         BlockType  type     = GetBlockType(worldPos.x, worldPos.y, worldPos.z);
                         chunkData[x, y, z] = new Block(new Vector3Int(x, y, z), worldPos, type, this);
-                        status = ChunkStatus.DRAW;
                     }
                 }
             }
@@ -44,13 +111,14 @@ namespace Minecraft.WorldGeneration
             for (int x = 0; x < World.chunkSize; x++) {
                 for (int y = 0; y < World.chunkSize; y++) {
                     for (int z = 0; z < World.chunkSize; z++) {
-                        chunkData[x, y, z].GenerateBlock();
+                        chunkData[x, y, z].GenerateBlock();    
                     }
                 }
             }
+            await Task.Yield();
         }
 
-        public void DrawChunk() {
+        public async Task DrawChunk() {
 
             Mesh mesh      = new Mesh();
             mesh.vertices  = meshStruct.vertices.ToArray();
@@ -67,6 +135,7 @@ namespace Minecraft.WorldGeneration
             collider.sharedMesh = filter.mesh;
             chunkObject.layer = LayerMask.NameToLayer("Ground");
             status = ChunkStatus.DONE;
+            await Task.Yield();
         }
 
         private BlockType GetBlockType(int xWorld, int yWorld, int zWorld)
