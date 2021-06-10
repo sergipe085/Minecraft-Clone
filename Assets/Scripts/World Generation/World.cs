@@ -1,157 +1,190 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class World : MonoBehaviour {
-    public PlayerController player       = null;
-    public Material         textureAtlas = null;
+namespace Minecraft.WorldGeneration
+{
+    public class World : MonoBehaviour
+    {
+        [Header("WORLD PROPERTIES")]
+        [SerializeField] private Material material;
+        public static int chunkSize = 16;
+        public static int radius    = 4;
 
-    public static int chunckSize   = 16;
-    public static int columnHeight = 16;
-    public static int worldSize    = 2;
-    public static int radius       = 4;
-    public static ConcurrentDictionary<string, Chunck> chuncks;
-    public static List<string> toRemove = new List<string>();
-    public static bool firstBuild = true;
+        [Header("CORE")]
+        [SerializeField] private GameObject player = null;
+        public static ConcurrentDictionary<string, Chunk> chunks = new ConcurrentDictionary<string, Chunk>();
+        public Vector3 lastBuildPos = Vector3.zero;
+        public bool firstBuild = true;
+        public List<string> toRemove = new List<string>();
 
-    public Vector3 lastBuildPos = Vector3.zero;
+        public CoroutineQueue queue;
+        public static uint maxCoroutines = 5000;
 
-    private CoroutineQueue queue = null;
-    public static uint maxCoroutines = 1000;
-
-    [Header("UI")]
-    [SerializeField] private GameObject menuUI    = null;
-    [SerializeField] private GameObject loadingUI = null;
-    private Slider loadingAmount = null;
-
-    private void Awake() {
-        loadingAmount = loadingUI.GetComponentInChildren<Slider>();
-    }
-
-    private void Start() {
-        Vector3 playerPos = player.transform.position;
-        player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
-        lastBuildPos = player.transform.position;
-        player.gameObject.SetActive(false);
-
-        firstBuild = true;
-
-        chuncks = new ConcurrentDictionary<string, Chunck>();
-
-        transform.position = Vector3.zero;
-        transform.rotation = Quaternion.identity; 
-
-        menuUI.SetActive(false);
-        loadingUI.SetActive(false);
-
-        queue = new CoroutineQueue(maxCoroutines, StartCoroutine);
-
-        //build starting chunk
-        BuildChunckAt((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize));
-
-        //draw starting chunk
-        StartCoroutine(DrawChunks());
-
-        //build world
-        StartCoroutine(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
-    }
-
-    private void Update() {
-        if (Vector3.Distance(player.transform.position, lastBuildPos) > chunckSize) {
-            BuildNearPlayer();
+        private void Start() {
+            Vector3 playerPos = player.transform.position;
+            player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
             lastBuildPos = player.transform.position;
+
+            queue = new CoroutineQueue(maxCoroutines, StartCoroutine);
+
+            Vector3Int initialPos = new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize;
+            BuildChunkAt(initialPos);
+
+            queue.Run(RecursiveBuildWorldA(initialPos, radius));
+            //RecursiveBuildWorld(initialPos, radius);
         }
 
-        if (!player.gameObject.activeSelf) {
-            player.gameObject.SetActive(true);
-            firstBuild = false;
-        }
-
-        StartCoroutine(DrawChunks());
-        StartCoroutine(RemoveOldChunks());
-    }
-
-    void BuildNearPlayer() {
-        StopCoroutine(nameof(BuildRecursiveWorld));
-        StartCoroutine(BuildRecursiveWorld((int)(player.transform.position.x / chunckSize), (int)(player.transform.position.y / chunckSize), (int)(player.transform.position.z / chunckSize), radius));
-    }
-
-    void BuildChunckAt(int x, int y, int z) {
-        Vector3 chunckPos = new Vector3(x, y, z) * chunckSize;
-        string chunckName = BuildChunckName(chunckPos);
-
-        Chunck c;
-        if (!chuncks.TryGetValue(chunckName, out c)) {
-            c = new Chunck(chunckPos, textureAtlas);
-            c.chunck.transform.parent = transform;
-            chuncks.TryAdd(chunckName, c);
-        }
-    }
-
-    IEnumerator BuildRecursiveWorld(int x, int y, int z, int rad) {
-        rad--;
-
-        if (rad <= 0) {
-            yield break;
-        }
-
-        //build chunk front
-        BuildChunckAt(x, y, z + 1);
-        StartCoroutine(BuildRecursiveWorld(x, y, z + 1, rad));
-        yield return null;
-
-        //build chunk back
-        BuildChunckAt(x, y, z - 1);
-        StartCoroutine(BuildRecursiveWorld(x, y, z - 1, rad));
-        yield return null;
-
-        //build chunk up
-        BuildChunckAt(x, y + 1, z);
-        StartCoroutine(BuildRecursiveWorld(x, y + 1, z, rad));
-        yield return null;
-
-        //build chunk down
-        BuildChunckAt(x, y - 1, z);
-        StartCoroutine(BuildRecursiveWorld(x, y - 1, z, rad));
-        yield return null;
-
-        //build chunk right
-        BuildChunckAt(x + 1, y, z);
-        StartCoroutine(BuildRecursiveWorld(x + 1, y, z, rad));
-        yield return null;
-
-        //build chunk left
-        BuildChunckAt(x - 1, y, z);
-        StartCoroutine(BuildRecursiveWorld(x - 1, y, z, rad));
-        yield return null;
-    }
-
-    IEnumerator DrawChunks() {
-        foreach(KeyValuePair<string, Chunck> c in chuncks) {
-            if (c.Value.status == Chunck.ChunckStatus.DRAW) {
-                c.Value.DrawChunck();
+        private void Update() {
+            if (Vector3.Distance(player.transform.position, lastBuildPos) > chunkSize)
+            {
+                BuildNearPlayer();
+                lastBuildPos = player.transform.position;
             }
-            if (c.Value.chunck && Vector3.Distance(player.transform.position, c.Value.chunck.transform.position) > radius * chunckSize) {
-                toRemove.Add(c.Key);
+
+            if (!player.gameObject.activeSelf)
+            {
+                player.gameObject.SetActive(true);
+                firstBuild = false;
             }
+
+            queue.Run(DrawChunks());
+            queue.Run(RemoveChunks());
+        }
+
+        private void BuildChunkAt(Vector3Int pos) {
+            Vector3Int chunkPos  = new Vector3Int(pos.x, pos.y, pos.z) * chunkSize;
+            string     chunkName = BuildChunckName(chunkPos);
+
+            Chunk c;
+            if (!chunks.TryGetValue(chunkName, out c)) {
+                c = new Chunk(chunkPos, material);
+                c.chunkObject.transform.parent = transform;
+                chunks.TryAdd(chunkName, c);
+            }
+        }
+
+        private void RecursiveBuildWorld(Vector3Int pos, int rad) {
+            rad--;
+            
+            if (rad <= 0) return;
+
+            Vector3Int newPos;
+
+            newPos = pos + Vector3Int.right;
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+
+            newPos = pos + Vector3Int.left;
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+
+            newPos = pos + Vector3Int.up;
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+
+            newPos = pos + Vector3Int.down;
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+
+            newPos = pos + new Vector3Int(0, 0, 1);
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+
+            newPos = pos + new Vector3Int(0, 0, -1);
+            BuildChunkAt(newPos);
+            //queue.Run(RecursiveBuildWorld(newPos, rad));
+            RecursiveBuildWorld(newPos, rad);
+            //yield return null;
+        }
+
+        private IEnumerator RecursiveBuildWorldA(Vector3Int pos, int rad)
+        {
+            rad--;
+
+            if (rad <= 0) yield break;
+
+            Vector3Int newPos;
+
+            newPos = pos + Vector3Int.right;
+            BuildChunkAt(newPos);
+            queue.Run(RecursiveBuildWorldA(newPos, rad));
+            yield return null;
+
+            newPos = pos + Vector3Int.left;
+            BuildChunkAt(newPos);
+            yield return null;
+
+            newPos = pos + Vector3Int.up;
+            BuildChunkAt(newPos);
+            queue.Run(RecursiveBuildWorldA(newPos, rad));
+            yield return null;
+
+            newPos = pos + Vector3Int.down;
+            BuildChunkAt(newPos);
+            queue.Run(RecursiveBuildWorldA(newPos, rad));
+            yield return null;
+
+            newPos = pos + new Vector3Int(0, 0, 1);
+            BuildChunkAt(newPos);
+            queue.Run(RecursiveBuildWorldA(newPos, rad));
+            yield return null;
+
+            newPos = pos + new Vector3Int(0, 0, -1);
+            BuildChunkAt(newPos);
+            queue.Run(RecursiveBuildWorldA(newPos, rad));
             yield return null;
         }
-    }
+        
+        private void BuildNearPlayer() {
+            StopCoroutine(nameof(RecursiveBuildWorldA));
+            RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius);
+        }
 
-    IEnumerator RemoveOldChunks() {
-        foreach (string cToRemove in toRemove) {
-            Chunck c;
-            if (chuncks.TryGetValue(cToRemove, out c)) {
-                Destroy(c.chunck);
-                chuncks.TryRemove(cToRemove, out c);
+        IEnumerator DrawChunks()
+        {
+            foreach (KeyValuePair<string, Chunk> c in chunks)
+            {
+                if (c.Value.status == ChunkStatus.DRAW)
+                {
+                    c.Value.DrawChunk();
+                }
+                else if (c.Value.chunkObject && Vector3.Distance(player.transform.position, c.Value.chunkObject.transform.position) > radius * chunkSize)
+                {
+                    toRemove.Add(c.Key);
+                }
                 yield return null;
             }
         }
-    }
 
-    public static string BuildChunckName(Vector3 position) {
-        return $"{(int)position.x}_{(int)position.y}_{(int)position.z}";
+        private IEnumerator RemoveChunks() {
+            for (int i = 0; i < toRemove.Count; i++) {
+                Chunk c;
+                if (chunks.TryGetValue(toRemove[i], out c))
+                {
+                    Destroy(c.chunkObject);
+                    chunks.TryRemove(toRemove[i], out c);
+                    toRemove.RemoveAt(i);
+                } else {
+                    toRemove.RemoveAt(i);
+                }
+                yield return null;
+            }
+        }
+
+        public static string BuildChunckName(Vector3 position) {
+            return $"{(int)position.x}_{(int)position.y}_{(int)position.z}";
+        }
     }
 }
