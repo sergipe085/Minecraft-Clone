@@ -20,7 +20,7 @@ namespace Minecraft.WorldGeneration
         public bool firstBuild = true;
         public List<string> toRemove = new List<string>();
 
-        private async void Start() {
+        private void Start() {
             Vector3 playerPos = player.transform.position;
             player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
             lastBuildPos = player.transform.position;
@@ -29,15 +29,15 @@ namespace Minecraft.WorldGeneration
             BuildChunkAt(initialPos);
 
 
-            RecursiveBuildWorld(initialPos, radius);
+            StartCoroutine(RecursiveBuildWorld(initialPos, radius));
             //queue.Run(RecursiveBuildWorldA(initialPos, radius));
             //RecursiveBuildWorld(initialPos, radius);
         }
 
-        private async void Update() {
+        private void Update() {
             if (Vector3.Distance(player.transform.position, lastBuildPos) > chunkSize)
             {
-                await BuildNearPlayer();
+                BuildNearPlayer();
                 lastBuildPos = player.transform.position;
             }
 
@@ -47,8 +47,8 @@ namespace Minecraft.WorldGeneration
                 firstBuild = false;
             }
 
-            await DrawChunks();
-            await RemoveChunks();
+            DrawChunks();
+            RemoveChunks();
         }
 
         private void BuildChunkAt(Vector3Int pos) {
@@ -63,66 +63,70 @@ namespace Minecraft.WorldGeneration
             }
         }
 
-        private async void RecursiveBuildWorld(Vector3Int pos, int rad) {
+        private IEnumerator RecursiveBuildWorld(Vector3Int pos, int rad) {
             rad--;
             
-            if (rad <= 0) return;
+            if (rad <= 0) yield break;
 
             Vector3Int newPos;
 
             newPos = pos + Vector3Int.right;
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+            //await Task.Yield();
 
             newPos = pos + Vector3Int.left;
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+            //await Task.Yield();
 
             newPos = pos + Vector3Int.up;
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+            //await Task.Yield();
 
             newPos = pos + Vector3Int.down;
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+           //await Task.Yield();
 
             newPos = pos + new Vector3Int(0, 0, 1);
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+            //await Task.Yield();
 
             newPos = pos + new Vector3Int(0, 0, -1);
             BuildChunkAt(newPos);
-            RecursiveBuildWorld(newPos, rad);
-            await Task.Yield();
+            StartCoroutine(RecursiveBuildWorld(newPos, rad));
+            yield return null;
+            //await Task.Yield();
         }
         
-        private async Task BuildNearPlayer() {
-            RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius);
-            await Task.Yield();
+        private async void BuildNearPlayer() {
+            StartCoroutine(RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius));
         }
 
-        async Task DrawChunks()
+        private void DrawChunks()
         {
             foreach (KeyValuePair<string, Chunk> c in chunks)
             {
                 if (c.Value.status == ChunkStatus.DRAW)
                 {
-                    await c.Value.DrawChunk();
+                    c.Value.DrawChunk();
                 }
                 else if (c.Value.chunkObject && Vector3.Distance(player.transform.position, c.Value.chunkObject.transform.position) > radius * chunkSize)
                 {
                     toRemove.Add(c.Key);
                 }
-                await Task.Yield();
             }
         }
 
-        private async Task RemoveChunks() {
+        private void RemoveChunks() {
             for (int i = 0; i < toRemove.Count; i++) {
                 Chunk c;
                 if (chunks.TryGetValue(toRemove[i], out c))
@@ -134,7 +138,6 @@ namespace Minecraft.WorldGeneration
                 } else {
                     toRemove.RemoveAt(i);
                 }
-                await Task.Yield();
             }
         }
 

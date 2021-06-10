@@ -45,6 +45,15 @@ namespace Minecraft.WorldGeneration
             chunkParent.currentIndex++;
         }
 
+        public void SetType(BlockType newType) {
+            type = newType;
+            if (type == BlockType.AIR) {
+                isSolid = false;
+                return;
+            }
+            isSolid = true;
+        }
+
         private bool IsSolid(int x, int y, int z) {
             Block[,,] chunkData;
 

@@ -87,7 +87,7 @@ namespace Minecraft.WorldGeneration
             GenerateChunk();
         }
 
-        public async Task GenerateChunk() {
+        public void GenerateChunk() {
             bool dataFromFile = false;
             dataFromFile = Load();
 
@@ -108,17 +108,23 @@ namespace Minecraft.WorldGeneration
                 }
             }
 
-            for (int x = 0; x < World.chunkSize; x++) {
-                for (int y = 0; y < World.chunkSize; y++) {
-                    for (int z = 0; z < World.chunkSize; z++) {
-                        chunkData[x, y, z].GenerateBlock();    
+            GenerateBlock();
+        }
+
+        public void GenerateBlock() {
+            for (int x = 0; x < World.chunkSize; x++)
+            {
+                for (int y = 0; y < World.chunkSize; y++)
+                {
+                    for (int z = 0; z < World.chunkSize; z++)
+                    {
+                        chunkData[x, y, z].GenerateBlock();
                     }
                 }
             }
-            await Task.Yield();
         }
 
-        public async Task DrawChunk() {
+        public void DrawChunk() {
 
             Mesh mesh      = new Mesh();
             mesh.vertices  = meshStruct.vertices.ToArray();
@@ -135,7 +141,6 @@ namespace Minecraft.WorldGeneration
             collider.sharedMesh = filter.mesh;
             chunkObject.layer = LayerMask.NameToLayer("Ground");
             status = ChunkStatus.DONE;
-            await Task.Yield();
         }
 
         private BlockType GetBlockType(int xWorld, int yWorld, int zWorld)
