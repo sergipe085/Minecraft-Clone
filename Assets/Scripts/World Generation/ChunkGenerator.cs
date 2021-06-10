@@ -52,11 +52,12 @@ namespace Minecraft.WorldGeneration
         }
 
         private IEnumerable<Vector3Int> GetChunksNearPlayer(Vector3Int pos) {
-            for (int x = -2; x < 2; x++)
+            int rad = 2;
+            for (int x = -rad; x < rad; x++)
             {
-                for (int y = -2; y < 2; y++)
+                for (int y = -rad; y < rad; y++)
                 {
-                    for (int z = -2; z < 2; z++)
+                    for (int z = -rad; z < rad - y; z++)
                     {
                         yield return pos + new Vector3Int(x, y, z) * chunkSize;
                     }

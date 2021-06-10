@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Minecraft.WorldGeneration
@@ -22,7 +23,7 @@ namespace Minecraft.WorldGeneration
         public CoroutineQueue queue;
         public static uint maxCoroutines = 5000;
 
-        private void Start() {
+        private async void Start() {
             Vector3 playerPos = player.transform.position;
             player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
             lastBuildPos = player.transform.position;
@@ -32,11 +33,13 @@ namespace Minecraft.WorldGeneration
             Vector3Int initialPos = new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize;
             BuildChunkAt(initialPos);
 
-            queue.Run(RecursiveBuildWorldA(initialPos, radius));
+
+            RecursiveBuildWorld(initialPos, radius);
+            //queue.Run(RecursiveBuildWorldA(initialPos, radius));
             //RecursiveBuildWorld(initialPos, radius);
         }
 
-        private void Update() {
+        private async void Update() {
             if (Vector3.Distance(player.transform.position, lastBuildPos) > chunkSize)
             {
                 BuildNearPlayer();
@@ -49,7 +52,7 @@ namespace Minecraft.WorldGeneration
                 firstBuild = false;
             }
 
-            queue.Run(DrawChunks());
+            await DrawChunks();
             queue.Run(RemoveChunks());
         }
 
@@ -65,7 +68,7 @@ namespace Minecraft.WorldGeneration
             }
         }
 
-        private void RecursiveBuildWorld(Vector3Int pos, int rad) {
+        private async void RecursiveBuildWorld(Vector3Int pos, int rad) {
             rad--;
             
             if (rad <= 0) return;
@@ -76,36 +79,42 @@ namespace Minecraft.WorldGeneration
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
 
             newPos = pos + Vector3Int.left;
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
 
             newPos = pos + Vector3Int.up;
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
 
             newPos = pos + Vector3Int.down;
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
 
             newPos = pos + new Vector3Int(0, 0, 1);
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
 
             newPos = pos + new Vector3Int(0, 0, -1);
             BuildChunkAt(newPos);
             //queue.Run(RecursiveBuildWorld(newPos, rad));
             RecursiveBuildWorld(newPos, rad);
+            await Task.Yield();
             //yield return null;
         }
 
@@ -147,12 +156,12 @@ namespace Minecraft.WorldGeneration
             yield return null;
         }
         
-        private void BuildNearPlayer() {
+        private async void BuildNearPlayer() {
             StopCoroutine(nameof(RecursiveBuildWorldA));
             RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius);
         }
 
-        IEnumerator DrawChunks()
+        async Task DrawChunks()
         {
             foreach (KeyValuePair<string, Chunk> c in chunks)
             {
@@ -164,7 +173,7 @@ namespace Minecraft.WorldGeneration
                 {
                     toRemove.Add(c.Key);
                 }
-                yield return null;
+                await Task.Yield();
             }
         }
 
