@@ -82,6 +82,7 @@ namespace Minecraft.WorldGeneration
             meshStruct.vertices  = new List<Vector3>();
             meshStruct.normals   = new List<Vector3>();
             meshStruct.uvs       = new List<Vector2>();
+            meshStruct.suvs      = new List<Vector2>();
             meshStruct.triangles = new List<int>();
 
             GenerateChunk();
@@ -124,12 +125,29 @@ namespace Minecraft.WorldGeneration
             }
         }
 
+        public void Redraw() {
+            GameObject.DestroyImmediate(chunkObject.GetComponent<MeshFilter>());
+            GameObject.DestroyImmediate(chunkObject.GetComponent<MeshRenderer>());
+            GameObject.DestroyImmediate(chunkObject.GetComponent<MeshCollider>());
+
+            meshStruct.vertices.Clear();
+            meshStruct.triangles.Clear();
+            meshStruct.uvs.Clear();
+            meshStruct.suvs.Clear();
+            meshStruct.normals.Clear();
+            currentIndex = 0;
+
+            GenerateBlock();
+            DrawChunk();
+        }
+
         public void DrawChunk() {
 
             Mesh mesh      = new Mesh();
             mesh.vertices  = meshStruct.vertices.ToArray();
             mesh.triangles = meshStruct.triangles.ToArray();
             mesh.uv        = meshStruct.uvs.ToArray();
+            mesh.SetUVs(1, meshStruct.suvs);
             mesh.normals   = meshStruct.normals.ToArray();
             mesh.RecalculateBounds();
 
@@ -183,6 +201,7 @@ namespace Minecraft.WorldGeneration
         public List<Vector3> vertices;
         public List<Vector3> normals;
         public List<Vector2> uvs;
+        public List<Vector2> suvs;
         public List<int>     triangles;
     }
 

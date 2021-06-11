@@ -7,10 +7,19 @@ public class BlockInteraction : MonoBehaviour
 {
     public Transform camera = null;
 
+    private bool canHit = true;
+    private bool canPlayHitAnim = true;
+
+    private Block currentBlock = null;
+
     private async void Update() {
-        if (Input.GetMouseButtonDown(0)) {
+        if (Input.GetMouseButton(0)) {
             if (Physics.Raycast(camera.position, camera.forward, out RaycastHit hit, 5)) {
-                GetComponentInChildren<Animator>().Play("HitAnimation");
+                if (canPlayHitAnim) {
+                    canPlayHitAnim = false;
+                    Invoke(nameof(CanPlayHitAnim), 0.2f);
+                    GetComponentInChildren<Animator>().Play("HitAnimation");
+                }
 
                 Vector3 hitBlock = hit.point - hit.normal/2;
 
@@ -18,54 +27,74 @@ public class BlockInteraction : MonoBehaviour
                 int y = (int)(Mathf.Round(hitBlock.y) - hit.collider.gameObject.transform.position.y);
                 int z = (int)(Mathf.Round(hitBlock.z) - hit.collider.gameObject.transform.position.z);
 
-                List<string> updates = new List<string>();
-                float thisChunkx = hit.collider.gameObject.transform.position.x;
-                float thisChunky = hit.collider.gameObject.transform.position.y;
-                float thisChunkz = hit.collider.gameObject.transform.position.z;
-                
-                updates.Add(hit.collider.gameObject.name);
-
-                if (x == 0) {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx - World.chunkSize, thisChunky, thisChunkz)));
-                }
-                if (x == World.chunkSize - 1) {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx + World.chunkSize, thisChunky, thisChunkz)));
-                }
-                if (y == 0) {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky - World.chunkSize, thisChunkz)));
-                }
-                if (y == World.chunkSize - 1)
-                {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky + World.chunkSize, thisChunkz)));
-                }
-                if (z == 0) {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky, thisChunkz - World.chunkSize)));
-                }
-                if (z == World.chunkSize - 1)
-                {
-                    updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky, thisChunkz + World.chunkSize)));
+                Chunk hitChunk;
+                World.chunks.TryGetValue(hit.collider.gameObject.name, out hitChunk);
+                if (currentBlock != null && currentBlock != hitChunk.chunkData[x, y, z]) {
+                    currentBlock.CancelHit();
+                    canHit = true;
+                    currentBlock = null;
+                    CancelInvoke(nameof(CanHit));
                 }
 
-                foreach(string chunkName in updates) {
-                    Chunk chunk;
-                    if (World.chunks.TryGetValue(chunkName, out chunk))
+                if (!canHit) return;
+
+                canHit = false;
+
+                currentBlock = hitChunk.chunkData[x, y, z];
+
+                Invoke(nameof(CanHit), (BlockData.timeToBreak[currentBlock.type] - 1) / 10f);
+
+                if (hitChunk != null && currentBlock.HitBlock()) {
+                    List<string> updates = new List<string>();
+                    float thisChunkx = hitChunk.chunkObject.transform.position.x;
+                    float thisChunky = hitChunk.chunkObject.transform.position.y;
+                    float thisChunkz = hitChunk.chunkObject.transform.position.z;
+                    
+                    if (x == 0) {
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx - World.chunkSize, thisChunky, thisChunkz)));
+                    }
+                    if (x == World.chunkSize - 1) {
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx + World.chunkSize, thisChunky, thisChunkz)));
+                    }
+                    if (y == 0) {
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky - World.chunkSize, thisChunkz)));
+                    }
+                    if (y == World.chunkSize - 1)
                     {
-                        DestroyImmediate(chunk.chunkObject.GetComponent<MeshFilter>());
-                        DestroyImmediate(chunk.chunkObject.GetComponent<MeshRenderer>());
-                        DestroyImmediate(chunk.chunkObject.GetComponent<MeshCollider>());
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky + World.chunkSize, thisChunkz)));
+                    }
+                    if (z == 0) {
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky, thisChunkz - World.chunkSize)));
+                    }
+                    if (z == World.chunkSize - 1)
+                    {
+                        updates.Add(World.BuildChunckName(new Vector3(thisChunkx, thisChunky, thisChunkz + World.chunkSize)));
+                    }
 
-                        chunk.meshStruct.vertices.Clear();
-                        chunk.meshStruct.triangles.Clear();
-                        chunk.meshStruct.uvs.Clear();
-                        chunk.meshStruct.normals.Clear();
-                        chunk.currentIndex = 0;
-
-                        chunk.chunkData[x, y, z].SetType(BlockType.AIR);
-                        chunk.GenerateBlock();
-                        chunk.DrawChunk();
+                    foreach(string chunkName in updates) {
+                        Chunk chunk;
+                        if (World.chunks.TryGetValue(chunkName, out chunk))
+                        {
+                            chunk.Redraw();
+                        }
                     }
                 }
             }
         }
+
+        if (Input.GetMouseButtonUp(0) && currentBlock != null) {
+            currentBlock.CancelHit();
+            currentBlock = null;
+            canHit = true;
+            CancelInvoke(nameof(CanHit));
+        }
+    }
+
+    private void CanHit() {
+        canHit = true;
+    }
+
+    private void CanPlayHitAnim() {
+        canPlayHitAnim = true;
     }
 }

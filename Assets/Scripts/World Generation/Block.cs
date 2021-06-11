@@ -12,12 +12,17 @@ namespace Minecraft.WorldGeneration
         public  BlockType type;
         private bool isSolid = false;
 
+        public BlockType healthBlockType;
+        int currentHealth = 10;
+
         public Block(Vector3Int _localPosition, Vector3Int _worldPosition, BlockType _type, Chunk _chunkParent) {
             localPosition = _localPosition;
             worldPosition = _worldPosition;
             type          = _type;
             chunkParent   = _chunkParent;
             isSolid       = type != BlockType.AIR;
+
+            healthBlockType = BlockType.NOCRACK;
         }
 
         public void GenerateBlock() {
@@ -40,7 +45,10 @@ namespace Minecraft.WorldGeneration
         public void GenerateFace(BlockFace face, TileSide side) {
             chunkParent.meshStruct.vertices.AddRange(BlockData.GetVerticesPositions(face, localPosition));
             chunkParent.meshStruct.normals.AddRange(BlockData.normals[face]);
+
             chunkParent.meshStruct.uvs.AddRange(BlockData.uvs[type][side]);
+            chunkParent.meshStruct.suvs.AddRange(BlockData.uvs[healthBlockType][side]);
+
             chunkParent.meshStruct.triangles.AddRange(BlockData.GetTrianglesPositions(face, chunkParent.currentIndex));
             chunkParent.currentIndex++;
         }
@@ -52,6 +60,32 @@ namespace Minecraft.WorldGeneration
                 return;
             }
             isSolid = true;
+
+            healthBlockType = BlockType.NOCRACK;
+        }
+
+        public bool HitBlock() {
+            if (type == BlockType.BEDROCK) return false;
+
+            healthBlockType = (BlockType)(17 - currentHealth);
+            currentHealth--;
+
+            if (currentHealth < 0) {
+                type = BlockType.AIR;
+                isSolid = false;
+                healthBlockType = BlockType.NOCRACK;
+                chunkParent.Redraw();
+                return true;
+            }
+
+            chunkParent.Redraw();
+            return false;
+        }
+
+        public void CancelHit() {
+            currentHealth = 10;
+            healthBlockType = BlockType.NOCRACK;
+            chunkParent.Redraw();
         }
 
         private bool IsSolid(int x, int y, int z) {
