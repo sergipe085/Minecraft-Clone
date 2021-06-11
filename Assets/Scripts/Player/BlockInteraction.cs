@@ -10,6 +10,8 @@ public class BlockInteraction : MonoBehaviour
     private async void Update() {
         if (Input.GetMouseButtonDown(0)) {
             if (Physics.Raycast(camera.position, camera.forward, out RaycastHit hit, 5)) {
+                GetComponentInChildren<Animator>().Play("HitAnimation");
+
                 Vector3 hitBlock = hit.point - hit.normal/2;
 
                 int x = (int)(Mathf.Round(hitBlock.x) - hit.collider.gameObject.transform.position.x);

@@ -27,6 +27,11 @@ public class PlayerController : MonoBehaviour
         orientation.transform.SetParent(transform);
     }
 
+    private void Start() {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     private void Update() {
         CaptureInput();
         Move();
@@ -47,6 +52,8 @@ public class PlayerController : MonoBehaviour
         moveDirection *= moveSpeed;
         moveDirection *= Time.fixedDeltaTime;
         rig.velocity = new Vector3(moveDirection.x, rig.velocity.y, moveDirection.z);
+
+        GetComponentInChildren<Animator>().SetBool("walking", currentInput.xMove != 0 || currentInput.zMove != 0);
     }
 
     private void Jump() {

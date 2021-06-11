@@ -29,9 +29,7 @@ namespace Minecraft.WorldGeneration
             BuildChunkAt(initialPos);
 
 
-            StartCoroutine(RecursiveBuildWorld(initialPos, radius));
-            //queue.Run(RecursiveBuildWorldA(initialPos, radius));
-            //RecursiveBuildWorld(initialPos, radius);
+            StartCoroutine(RecursiveBuildWorld(initialPos, 4));
         }
 
         private void Update() {
@@ -74,40 +72,34 @@ namespace Minecraft.WorldGeneration
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-            //await Task.Yield();
 
             newPos = pos + Vector3Int.left;
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-            //await Task.Yield();
 
             newPos = pos + Vector3Int.up;
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-            //await Task.Yield();
 
             newPos = pos + Vector3Int.down;
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-           //await Task.Yield();
 
             newPos = pos + new Vector3Int(0, 0, 1);
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-            //await Task.Yield();
 
             newPos = pos + new Vector3Int(0, 0, -1);
             BuildChunkAt(newPos);
             StartCoroutine(RecursiveBuildWorld(newPos, rad));
             yield return null;
-            //await Task.Yield();
         }
         
-        private async void BuildNearPlayer() {
+        private void BuildNearPlayer() {
             StartCoroutine(RecursiveBuildWorld(new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize, radius));
         }
 
