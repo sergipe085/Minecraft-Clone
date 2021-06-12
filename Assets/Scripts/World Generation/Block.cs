@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,14 +16,17 @@ namespace Minecraft.WorldGeneration
         public BlockType healthBlockType;
         int currentHealth = 10;
 
+        private event Action onDestroy;
+
         public Block(Vector3Int _localPosition, Vector3Int _worldPosition, BlockType _type, Chunk _chunkParent) {
             localPosition = _localPosition;
             worldPosition = _worldPosition;
             type          = _type;
             chunkParent   = _chunkParent;
             isSolid       = type != BlockType.AIR;
-
             healthBlockType = BlockType.NOCRACK;
+
+            onDestroy += CreateParticles;
         }
 
         public void GenerateBlock() {
@@ -77,6 +81,8 @@ namespace Minecraft.WorldGeneration
             currentHealth--;
 
             if (currentHealth < 0) {
+                onDestroy();
+
                 type = BlockType.AIR;
                 isSolid = false;
                 healthBlockType = BlockType.NOCRACK;
@@ -141,6 +147,38 @@ namespace Minecraft.WorldGeneration
                 i = 0;
             }
             return i;
+        }
+
+        private void CreateParticles() {
+            GameObject particlePrefab = Resources.Load<GameObject>("DestroyParticle");
+            GameObject particleInstance = GameObject.Instantiate(particlePrefab, worldPosition, Quaternion.identity);
+            ParticleSystemRenderer particleSystemRenderer = particleInstance.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>();
+
+            Debug.Log(particleSystemRenderer);
+
+            Vector3[] vertices = new Vector3[4] {
+                new Vector3(0, 0, 0), new Vector3(0.3f, 0, 0), new Vector3(0.3f, 0.3f, 0), new Vector3(0, 0.3f, 0)
+            };
+
+            int[] triangles = new int[12] {
+                0, 3, 1, 1, 3, 2,
+                1, 3, 0, 2, 3, 1,
+            };
+
+            List<Vector2> uvs = new List<Vector2>();
+            float uvOffset = 0.0275f;
+            uvs.Add(BlockData.uvs[type][TileSide.TOP][0] + new Vector2(uvOffset, uvOffset));
+            uvs.Add(BlockData.uvs[type][TileSide.TOP][1] + new Vector2(-uvOffset,uvOffset));
+            uvs.Add(BlockData.uvs[type][TileSide.TOP][2] + new Vector2(-uvOffset,-uvOffset));
+            uvs.Add(BlockData.uvs[type][TileSide.TOP][3] + new Vector2(uvOffset, -uvOffset));
+            
+
+            Mesh mesh = new Mesh();
+            mesh.vertices  = vertices;
+            mesh.uv        = uvs.ToArray();
+            mesh.triangles = triangles;
+
+            particleSystemRenderer.mesh = mesh;
         }
     }
 }
