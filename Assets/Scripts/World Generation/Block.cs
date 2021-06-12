@@ -6,7 +6,7 @@ namespace Minecraft.WorldGeneration
 {
     public class Block
     {
-        private Vector3Int localPosition = Vector3Int.zero;
+        public Vector3Int localPosition = Vector3Int.zero;
         private Vector3Int worldPosition = Vector3Int.zero;
         private Chunk   chunkParent      = null;
         public  BlockType type;

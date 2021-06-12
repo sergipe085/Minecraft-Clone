@@ -133,6 +133,43 @@ namespace Minecraft.WorldGeneration
             }
         }
 
+        public static Block GetWorldBlock(Vector3 pos) {
+            int cx, cy, cz;
+
+            if (pos.x < 0) {
+                cx = (int) (Mathf.Round(pos.x - chunkSize) / (float)chunkSize) * chunkSize;
+            }
+            else {
+                cx = (int) (Mathf.Round(pos.x) / (float)chunkSize) * chunkSize;
+            }
+            if (pos.y < 0) {
+                cy = (int)(Mathf.Round(pos.y - chunkSize) / (float)chunkSize) * chunkSize;
+            }
+            else {
+                cy = (int)(Mathf.Round(pos.y) / (float)chunkSize) * chunkSize;
+            }
+            if (pos.z < 0) {
+                cz = (int)(Mathf.Round(pos.z - chunkSize) / (float)chunkSize) * chunkSize;
+            } 
+            else {
+                cz = (int)(Mathf.Round(pos.z) / (float)chunkSize) * chunkSize;
+            }
+
+            int xBlock, yBlock, zBlock;
+            xBlock = (int) Mathf.Abs((float)Mathf.Round(pos.x) - cx);
+            yBlock = (int) Mathf.Abs((float)Mathf.Round(pos.y) - cy);
+            zBlock = (int) Mathf.Abs((float)Mathf.Round(pos.z) - cz);
+
+            string chunkName = BuildChunckName(new Vector3(cx, cy, cz));
+            Chunk chunk;
+            if (chunks.TryGetValue(chunkName, out chunk)) {
+                return chunk.chunkData[xBlock, yBlock, zBlock];
+            }
+            else {
+                return null;
+            }
+        }
+
         public static string BuildChunckName(Vector3 position) {
             return $"{(int)position.x}_{(int)position.y}_{(int)position.z}";
         }

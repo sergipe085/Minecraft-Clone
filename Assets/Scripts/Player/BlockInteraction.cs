@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Minecraft.WorldGeneration;
 using UnityEngine;
@@ -15,7 +16,7 @@ public class BlockInteraction : MonoBehaviour
 
     private void Update() {
         if (Input.GetMouseButton(0)) {
-            DestroyBlock();    
+            LeftMouseAction();
         }
 
         if (Input.GetMouseButton(1)) {
@@ -34,46 +35,54 @@ public class BlockInteraction : MonoBehaviour
         return Physics.Raycast(camera.position, camera.forward, out hit, 5);
     }
 
-
-    private void DestroyBlock() {
-        if (DoRaycast(out RaycastHit hit))
-        {
-            Chunk hitChunk;
-            if (!World.chunks.TryGetValue(hit.collider.gameObject.name, out hitChunk)) return;
-
-            if (canDeleteBlock)
-            {
-                canDeleteBlock = false;
-                Invoke(nameof(CanDeleteBlock), 0.2f);
-                GetComponentInChildren<Animator>().Play("HitAnimation");
+    private void LeftMouseAction() {
+        Action<RaycastHit> action = null;
+        
+        if (DoRaycast(out RaycastHit hit)) {
+            if (hit.transform.GetComponent<ChunkMB>()) {
+                action = DestroyBlock;
             }
+        }
 
-            Vector3 hitBlock = hit.point - hit.normal / 2;
+        action?.Invoke(hit);
+    }
 
-            int x = (int)(Mathf.Round(hitBlock.x) - hit.collider.gameObject.transform.position.x);
-            int y = (int)(Mathf.Round(hitBlock.y) - hit.collider.gameObject.transform.position.y);
-            int z = (int)(Mathf.Round(hitBlock.z) - hit.collider.gameObject.transform.position.z);
 
-            if (currentBlock != null && currentBlock != hitChunk.chunkData[x, y, z])
-            {
-                currentBlock.CancelHit();
-                canHit = true;
-                currentBlock = null;
-                CancelInvoke(nameof(CanHit));
-            }
+    private void DestroyBlock(RaycastHit hit) {
 
-            if (!canHit) return;
+        Chunk hitChunk;
+        if (!World.chunks.TryGetValue(hit.collider.gameObject.name, out hitChunk)) return;
 
-            canHit = false;
+        if (canDeleteBlock) {
+            canDeleteBlock = false;
+            Invoke(nameof(CanDeleteBlock), 0.2f);
+            GetComponentInChildren<Animator>().Play("HitAnimation");
+        }
 
-            currentBlock = hitChunk.chunkData[x, y, z];
+        Vector3 hitBlock = hit.point - hit.normal / 2;
 
-            Invoke(nameof(CanHit), (BlockData.timeToBreak[currentBlock.type] - 1) / 10f);
+        int x = (int)(Mathf.Round(hitBlock.x) - hit.collider.gameObject.transform.position.x);
+        int y = (int)(Mathf.Round(hitBlock.y) - hit.collider.gameObject.transform.position.y);
+        int z = (int)(Mathf.Round(hitBlock.z) - hit.collider.gameObject.transform.position.z);
 
-            if (currentBlock.HitBlock())
-            {
-                UpdateChunks(x, y, z, hitChunk);
-            }
+        if (currentBlock != null && currentBlock != hitChunk.chunkData[x, y, z]) {
+            currentBlock.CancelHit();
+            canHit = true;
+            currentBlock = null;
+            CancelInvoke(nameof(CanHit));
+        }
+
+        if (!canHit) return;
+
+        canHit = false;
+
+        currentBlock = World.GetWorldBlock(hitBlock);
+
+        Invoke(nameof(CanHit), (BlockData.timeToBreak[currentBlock.type] - 1) / 10f);
+
+        if (currentBlock.HitBlock()) {
+            hitChunk.changed = true;
+            UpdateChunks(x, y, z, hitChunk);
         }
     }
 
@@ -82,25 +91,28 @@ public class BlockInteraction : MonoBehaviour
         {
             if (!canCreateBlock) return;
             canCreateBlock = false;
-            Invoke(nameof(CanCreateBlock), 0.4f);
+            Invoke(nameof(CanCreateBlock), 0.2f);
 
             Chunk hitChunk;
             if (!World.chunks.TryGetValue(hit.collider.gameObject.name, out hitChunk)) return;
 
-            GetComponentInChildren<Animator>().Play("HitAnimation");
-
             Vector3 hitBlock = hit.point + hit.normal / 2;
+
+            currentBlock = World.GetWorldBlock(hitBlock);
+
+            if (currentBlock.localPosition == World.GetWorldBlock(transform.position).localPosition || currentBlock.localPosition == World.GetWorldBlock(transform.position).localPosition + Vector3.up) {
+                return;
+            }
+
+            GetComponentInChildren<Animator>().Play("HitAnimation");
 
             int x = (int)(Mathf.Round(hitBlock.x) - hit.collider.gameObject.transform.position.x);
             int y = (int)(Mathf.Round(hitBlock.y) - hit.collider.gameObject.transform.position.y);
             int z = (int)(Mathf.Round(hitBlock.z) - hit.collider.gameObject.transform.position.z);
 
-            currentBlock = hitChunk.chunkData[x, y, z];
-
-            Invoke(nameof(CanHit), (BlockData.timeToBreak[currentBlock.type] - 1) / 10f);
-
             if (currentBlock.BuildBlock(BlockType.DIRT))
             {
+                hitChunk.changed = true;
                 UpdateChunks(x, y, z, hitChunk);
             }
         }

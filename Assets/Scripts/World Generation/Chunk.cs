@@ -39,6 +39,7 @@ namespace Minecraft.WorldGeneration
         public ChunkStatus status;
 
         public int currentIndex = 0;
+        public bool changed = false;
 
         private ChunkBlockData chunkBlockData;
 
@@ -76,6 +77,9 @@ namespace Minecraft.WorldGeneration
         public Chunk(Vector3 _chunkPosition, Material _material) {
             chunkObject = new GameObject(World.BuildChunckName(_chunkPosition));
             chunkObject.transform.position = _chunkPosition;
+            ChunkMB chunkMB = chunkObject.AddComponent(typeof(ChunkMB)) as ChunkMB;
+            chunkMB.SetOwner(this);
+
             material = _material;
 
             meshStruct = new MeshStruct();
