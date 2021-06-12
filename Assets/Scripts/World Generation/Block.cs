@@ -64,6 +64,12 @@ namespace Minecraft.WorldGeneration
             healthBlockType = BlockType.NOCRACK;
         }
 
+        public bool BuildBlock(BlockType type) {
+            SetType(type);
+            chunkParent.Redraw();
+            return true;
+        }
+
         public bool HitBlock() {
             if (type == BlockType.BEDROCK) return false;
 

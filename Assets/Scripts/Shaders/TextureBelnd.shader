@@ -62,7 +62,7 @@
                 fixed4 col2 = tex2D(_SecondaryTexture, i.uv2);
 
                 if (col2.a != 0) {
-                    return col2;
+                    return lerp(col1, col2, 0.5);
                 }
 
                 return col1;

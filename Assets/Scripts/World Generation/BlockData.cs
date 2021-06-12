@@ -190,7 +190,7 @@ namespace Minecraft.WorldGeneration
         public static Dictionary<BlockType, float> timeToBreak = new Dictionary<BlockType, float>() {
             { BlockType.GRASS,   3f },
             { BlockType.DIRT,    2f },
-            { BlockType.STONE,   20f },
+            { BlockType.STONE,   1f },
             { BlockType.COAL,    30f },
             { BlockType.BEDROCK,-1f },
             { BlockType.AIR,    -1f },
