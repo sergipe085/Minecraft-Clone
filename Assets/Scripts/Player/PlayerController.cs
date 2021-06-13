@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("HELPER")]
     private GameObject orientation;
+    private bool canControl = true;
 
     private void Awake() {
         rig          = GetComponent<Rigidbody>();
@@ -35,17 +36,29 @@ public class PlayerController : MonoBehaviour
     }
 
     private void Update() {
-        CaptureInput();
-        Move();
-        Jump();
-        camera.MouseLook(currentInput.xLook, currentInput.yLook);
+        if (canControl) {
+            CaptureInput();
+            Move();
+            Jump();
+            camera.MouseLook(currentInput.xLook, currentInput.yLook);
+        }
 
         if (IsGrounded() && !lastIsGrounded) {
             Land();
         }
         lastIsGrounded = IsGrounded();
 
-        if (Input.GetKeyDown(KeyCode.I)) inventory.SwitchEnable();
+        if (Input.GetKeyDown(KeyCode.I)) 
+        {
+            SwitchInventory();
+        }
+    }
+
+    private void SwitchInventory() {
+        Cursor.visible = !Cursor.visible;
+        Cursor.lockState = Cursor.lockState == CursorLockMode.None ? CursorLockMode.Locked : CursorLockMode.None;
+        inventory.canvas.gameObject.SetActive(!inventory.canvas.gameObject.activeSelf);
+        canControl = !canControl;
     }
 
     private void Move() {

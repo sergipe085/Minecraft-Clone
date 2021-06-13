@@ -6,7 +6,10 @@ using UnityEngine;
 public class Inventory : MonoBehaviour
 {
     [SerializeField] private InventorySlot[] slots;
-    [SerializeField] private GameObject      canvas        = null;
+    [SerializeField] public  GameObject      canvas        = null;
+
+    public InventoryHolder currentHolding = null;
+    public InventoryHolder currentTarget  = null;
 
     private void Start() {
         slots = GetComponentsInChildren<InventorySlot>();
@@ -18,15 +21,11 @@ public class Inventory : MonoBehaviour
         foreach(InventorySlot slot in slots) {
             if ((slot.currentType == _blockType || slot.currentType == BlockType.AIR) && slot.currentAmount < 64)
             {
-                slot.Equip(_blockType);
+                slot.Equip(_blockType, true);
                 //slotsPosition[i].UpdateSlot(_blockType);
                 return true;
             }
         }
         return false;
-    }
-
-    public void SwitchEnable() {
-        canvas.SetActive(!canvas.activeSelf);
     }
 }

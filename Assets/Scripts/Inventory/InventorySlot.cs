@@ -12,23 +12,26 @@ public class InventorySlot : MonoBehaviour
     public int       currentAmount = 0;
 
     [Header("COMPONENTS")]
-    private Image image = null;
-    private Text  quant = null;
+    [SerializeField] private Image image = null;
+    [SerializeField] private Text  quant = null;
 
     private void Awake() {
-        image = GetComponentInChildren<Image>();
-        quant = GetComponentInChildren<Text>();
         image.enabled = false;
         quant.enabled = false;
     }
 
-    public void Equip(BlockType _blockType) {
+    public void Equip(BlockType _blockType, bool increment) {
         currentType = _blockType;
-        currentAmount++;
+        currentAmount += increment ? 1 : 0;
 
         image.enabled = true;
         image.sprite  = DataHolder.instance.GetInventoryData(_blockType).inventorySprite;
         quant.enabled = true;
         quant.text    = currentAmount.ToString();
+    }
+
+    public void UpdateAmount(int amount) {
+        currentAmount = amount;
+        quant.text = currentAmount.ToString();
     }
 }
