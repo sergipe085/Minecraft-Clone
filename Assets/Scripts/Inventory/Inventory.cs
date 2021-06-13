@@ -5,11 +5,15 @@ using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
-    [SerializeField] private int             slotsAmount = 12;
     [SerializeField] private InventorySlot[] slots;
+    [SerializeField] private SlotLocation[]  slotsPosition = null;
+    [SerializeField] private GameObject      canvas        = null;
 
     private void Start() {
-        slots = new InventorySlot[12];
+        slotsPosition = GetComponentsInChildren<SlotLocation>();
+        slots = new InventorySlot[slotsPosition.Length];
+
+        canvas.SetActive(false);
     }
 
     public bool Equip(BlockType _blockType) {
