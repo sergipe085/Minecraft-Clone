@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2929029394417220653}
   - component: {fileID: 99578922617339667}
   - component: {fileID: 4585337014139198539}
-  - component: {fileID: 8964668490585898473}
+  - component: {fileID: 6765771891567521302}
   m_Layer: 10
   m_Name: PickupPrefab
   m_TagString: Untagged
@@ -63,7 +63,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 2, y: 2, z: 2}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8964668490585898473
+--- !u!114 &6765771891567521302
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -72,10 +72,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2285606524044856106}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 18122d287476ebb448a55cd2784bf893, type: 3}
+  m_Script: {fileID: 11500000, guid: ec3327116b57fd0408fa41af57fee7f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   meshObject: {fileID: 5211613465586914771}
+  blockType: 5
+  isPicking: 0
 --- !u!1 &5211613465586914771
 GameObject:
   m_ObjectHideFlags: 0

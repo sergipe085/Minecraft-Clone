@@ -166,8 +166,6 @@ namespace Minecraft.WorldGeneration
             GameObject particleInstance = GameObject.Instantiate(particlePrefab, worldPosition, Quaternion.identity);
             ParticleSystemRenderer particleSystemRenderer = particleInstance.GetComponent<ParticleSystem>().GetComponent<ParticleSystemRenderer>();
 
-            Debug.Log(particleSystemRenderer);
-
             Vector3[] vertices = new Vector3[4] {
                 new Vector3(0, 0, 0), new Vector3(0.3f, 0, 0), new Vector3(0.3f, 0.3f, 0), new Vector3(0, 0.3f, 0)
             };
@@ -194,10 +192,10 @@ namespace Minecraft.WorldGeneration
         }
 
         private void CreatePickup() {
-            GameObject pickupPrefab = Resources.Load<GameObject>("PickupPrefab");
+            GameObject pickupPrefab   = Resources.Load<GameObject>("PickupPrefab");
             GameObject pickupInstance = GameObject.Instantiate(pickupPrefab, worldPosition, Quaternion.identity);
-            PickupItem pickupItem   = pickupInstance.GetComponent<PickupItem>();
-            pickupItem.Setup(type);
+            PickupBlock pickupBlock   = pickupInstance.GetComponent<PickupBlock>();
+            pickupBlock.Setup(type);
         }
     }
 }

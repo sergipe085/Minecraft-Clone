@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Minecraft.WorldGeneration;
 using UnityEngine;
 
-public class PickupItem : MonoBehaviour
+public class PickupBlock : MonoBehaviour
 {
     public GameObject meshObject = null;
 
-    private BlockType blockType = BlockType.AIR;
+    public BlockType blockType = BlockType.AIR;
     
     private List<Vector3> vertices  = new List<Vector3>();
     private List<Vector2> uvs       = new List<Vector2>();
@@ -15,10 +15,10 @@ public class PickupItem : MonoBehaviour
 
     private Rigidbody rig = null;
 
-    private float initialY = 0.0f;
-    private float yTime    = 0.0f;
-    private bool onGround  = false;
-    public  bool isPicking = false;
+    private float initialY  = 0.0f;
+    private float yTime     = 0.0f;
+    private bool  onGround  = false;
+    public  bool  isPicking = false;
 
     private void Awake() {
         rig = GetComponent<Rigidbody>();
@@ -54,7 +54,8 @@ public class PickupItem : MonoBehaviour
     private void Update() {
         if (isPicking) return;
 
-        if (Physics.Raycast(transform.position, Vector3.down, 0.4f) && rig.isKinematic == false) {
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, 0.4f) && rig.isKinematic == false) {
+            if (hit.transform.position.y > transform.position.y || !hit.transform.GetComponent<ChunkMB>()) return;
             Land();
         } else if (!Physics.Raycast(transform.position, Vector3.down, 0.4f)) {
             rig.isKinematic = false;

@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     [Header("COMPONENTS")]
     private Rigidbody           rig        = null;
     private CameraController    camera     = null;
+    private Inventory           inventory  = null;
 
     [Header("HELPER")]
     private GameObject orientation;
@@ -21,6 +22,7 @@ public class PlayerController : MonoBehaviour
     private void Awake() {
         rig          = GetComponent<Rigidbody>();
         camera       = GetComponentInChildren<CameraController>();
+        inventory    = GetComponent<Inventory>();
 
         currentInput = new InputStructure();
         orientation  = new GameObject("Player Orientation");
@@ -108,23 +110,24 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other) {
-        PickupItem pickup = other.GetComponent<PickupItem>();
+        PickupBlock pickup = other.GetComponent<PickupBlock>();
         if (pickup) {
+            other.enabled = false;
             StartCoroutine(PickItem(pickup));
         }
     }
 
-    IEnumerator PickItem(PickupItem item) {
-        item.isPicking = true;
-        item.meshObject.transform.localPosition = Vector3.zero;
-        item.GetComponent<Rigidbody>().isKinematic = true;
+    IEnumerator PickItem(PickupBlock pickupBlock) {
+        pickupBlock.isPicking = true;
+        pickupBlock.GetComponent<Rigidbody>().isKinematic = true;
 
-        while (item != null && Vector3.Distance(transform.position + Vector3.up / 2, item.transform.position) > 0.2f) {
-            Vector3 direction = transform.position + Vector3.up / 2 - item.transform.position;
-            item.transform.position += direction.normalized * 8.0f * Time.deltaTime;
+        while (pickupBlock != null && Vector3.Distance(transform.position + Vector3.up / 2, pickupBlock.transform.position) > 0.2f) {
+            Vector3 direction = transform.position + Vector3.up / 2 - pickupBlock.transform.position;
+            pickupBlock.transform.position += direction.normalized * 8.0f * Time.deltaTime;
             yield return null;
         }
 
-        Destroy(item.gameObject);
+        inventory.Equip(pickupBlock.blockType);
+        Destroy(pickupBlock.gameObject);
     }
 }
