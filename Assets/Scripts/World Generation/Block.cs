@@ -18,6 +18,9 @@ namespace Minecraft.WorldGeneration
 
         private event Action onDestroy;
 
+        private List<Vector3> vertices = new List<Vector3>();
+        private List<int> triangles = new List<int>();
+
         public Block(Vector3Int _localPosition, Vector3Int _worldPosition, BlockType _type, Chunk _chunkParent) {
             localPosition = _localPosition;
             worldPosition = _worldPosition;
@@ -27,6 +30,7 @@ namespace Minecraft.WorldGeneration
             healthBlockType = BlockType.NOCRACK;
 
             onDestroy += CreateParticles;
+            onDestroy += CreatePickup;
         }
 
         public void GenerateBlock() {
@@ -49,6 +53,14 @@ namespace Minecraft.WorldGeneration
         public void GenerateFace(BlockFace face, TileSide side) {
             chunkParent.meshStruct.vertices.AddRange(BlockData.GetVerticesPositions(face, localPosition));
             chunkParent.meshStruct.normals.AddRange(BlockData.normals[face]);
+
+            triangles.Add(vertices.Count);
+            triangles.Add(vertices.Count + 1);
+            triangles.Add(vertices.Count + 2);
+            triangles.Add(vertices.Count);
+            triangles.Add(vertices.Count + 2);
+            triangles.Add(vertices.Count + 3);
+            vertices.AddRange(BlockData.GetVerticesPositions(face, localPosition));
 
             chunkParent.meshStruct.uvs.AddRange(BlockData.uvs[type][side]);
             chunkParent.meshStruct.suvs.AddRange(BlockData.uvs[healthBlockType][side]);
@@ -173,12 +185,19 @@ namespace Minecraft.WorldGeneration
             uvs.Add(BlockData.uvs[type][TileSide.TOP][3] + new Vector2(uvOffset, -uvOffset));
             
 
-            Mesh mesh = new Mesh();
+            Mesh mesh      = new Mesh();
             mesh.vertices  = vertices;
             mesh.uv        = uvs.ToArray();
             mesh.triangles = triangles;
 
             particleSystemRenderer.mesh = mesh;
+        }
+
+        private void CreatePickup() {
+            GameObject pickupPrefab = Resources.Load<GameObject>("PickupPrefab");
+            GameObject pickupInstance = GameObject.Instantiate(pickupPrefab, worldPosition, Quaternion.identity);
+            PickupItem pickupItem   = pickupInstance.GetComponent<PickupItem>();
+            pickupItem.Setup(type);
         }
     }
 }

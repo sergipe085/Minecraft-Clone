@@ -24,12 +24,17 @@ namespace Minecraft.WorldGeneration
             Vector3 playerPos = player.transform.position;
             player.transform.position = new Vector3(playerPos.x, Utils.GenerateHeight(playerPos.x, playerPos.z) + 1, playerPos.z);
             lastBuildPos = player.transform.position;
+            player.SetActive(false);
+            Invoke(nameof(ActivePlayer), 3.0f);
 
             Vector3Int initialPos = new Vector3Int((int)player.transform.position.x, (int)player.transform.position.y, (int)player.transform.position.z) / chunkSize;
             BuildChunkAt(initialPos);
 
-
             StartCoroutine(RecursiveBuildWorld(initialPos, 4));
+        }
+
+        private void ActivePlayer() {
+            player.gameObject.SetActive(true);
         }
 
         private void Update() {
@@ -41,7 +46,7 @@ namespace Minecraft.WorldGeneration
 
             if (!player.gameObject.activeSelf)
             {
-                player.gameObject.SetActive(true);
+                //player.gameObject.SetActive(true);
                 firstBuild = false;
             }
 

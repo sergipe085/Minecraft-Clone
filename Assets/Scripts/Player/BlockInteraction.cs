@@ -14,6 +14,8 @@ public class BlockInteraction : MonoBehaviour
 
     private Block currentBlock = null;
 
+    [SerializeField] private LayerMask raycastableLayer;
+
     private void Update() {
         if (Input.GetMouseButton(0)) {
             LeftMouseAction();
@@ -32,7 +34,7 @@ public class BlockInteraction : MonoBehaviour
     }
 
     private bool DoRaycast(out RaycastHit hit) {
-        return Physics.Raycast(camera.position, camera.forward, out hit, 5);
+        return Physics.Raycast(camera.position, camera.forward, out hit, 5, raycastableLayer);
     }
 
     private void LeftMouseAction() {

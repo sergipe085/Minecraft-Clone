@@ -106,4 +106,25 @@ public class PlayerController : MonoBehaviour
             transform.position = hit.point + Vector3.up;
         }
     }
+
+    private void OnTriggerEnter(Collider other) {
+        PickupItem pickup = other.GetComponent<PickupItem>();
+        if (pickup) {
+            StartCoroutine(PickItem(pickup));
+        }
+    }
+
+    IEnumerator PickItem(PickupItem item) {
+        item.isPicking = true;
+        item.meshObject.transform.localPosition = Vector3.zero;
+        item.GetComponent<Rigidbody>().isKinematic = true;
+
+        while (item != null && Vector3.Distance(transform.position + Vector3.up / 2, item.transform.position) > 0.2f) {
+            Vector3 direction = transform.position + Vector3.up / 2 - item.transform.position;
+            item.transform.position += direction.normalized * 8.0f * Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(item.gameObject);
+    }
 }
