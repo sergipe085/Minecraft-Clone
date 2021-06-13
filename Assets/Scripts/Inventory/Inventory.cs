@@ -6,12 +6,10 @@ using UnityEngine;
 public class Inventory : MonoBehaviour
 {
     [SerializeField] private InventorySlot[] slots;
-    [SerializeField] private SlotLocation[]  slotsPosition = null;
     [SerializeField] private GameObject      canvas        = null;
 
     private void Start() {
-        slotsPosition = GetComponentsInChildren<SlotLocation>();
-        slots = new InventorySlot[slotsPosition.Length];
+        slots = GetComponentsInChildren<InventorySlot>();
 
         canvas.SetActive(false);
     }
@@ -21,9 +19,14 @@ public class Inventory : MonoBehaviour
             if ((slot.currentType == _blockType || slot.currentType == BlockType.AIR) && slot.currentAmount < 64)
             {
                 slot.Equip(_blockType);
+                //slotsPosition[i].UpdateSlot(_blockType);
                 return true;
             }
         }
         return false;
+    }
+
+    public void SwitchEnable() {
+        canvas.SetActive(!canvas.activeSelf);
     }
 }

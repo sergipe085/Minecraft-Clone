@@ -44,6 +44,8 @@ public class PlayerController : MonoBehaviour
             Land();
         }
         lastIsGrounded = IsGrounded();
+
+        if (Input.GetKeyDown(KeyCode.I)) inventory.SwitchEnable();
     }
 
     private void Move() {
